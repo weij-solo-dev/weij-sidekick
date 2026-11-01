@@ -1,0 +1,53 @@
+"""sidekick.config — provider presets, user spec, apply and probe."""
+
+from .catalog import load_catalog, provider
+from .config import ConfigProbeOutcome, ConfigSession
+from .schemas import (
+    LANGUAGES,
+    SERVICES,
+    SLOT_NAMES,
+    ConfigAgents,
+    ConfigAutomation,
+    ConfigBody,
+    ConfigChannels,
+    ConfigContacts,
+    ConfigDashboard,
+    ConfigInteraction,
+    ConfigPerception,
+    ConfigProvider,
+    ConfigRobot,
+    ConfigSlot,
+    ConfigSpec,
+    ConfigSubagent,
+    ConfigSway,
+    ConfigTelegram,
+    ConfigWeChat,
+    ProviderSpec,
+)
+
+__all__ = [
+    "LANGUAGES",
+    "SERVICES",
+    "SLOT_NAMES",
+    "ConfigAgents",
+    "ConfigAutomation",
+    "ConfigBody",
+    "ConfigChannels",
+    "ConfigContacts",
+    "ConfigDashboard",
+    "ConfigInteraction",
+    "ConfigPerception",
+    "ConfigProbeOutcome",
+    "ConfigProvider",
+    "ConfigRobot",
+    "ConfigSession",
+    "ConfigSlot",
+    "ConfigSpec",
+    "ConfigSubagent",
+    "ConfigSway",
+    "ConfigTelegram",
+    "ConfigWeChat",
+    "ProviderSpec",
+    "load_catalog",
+    "provider",
+]

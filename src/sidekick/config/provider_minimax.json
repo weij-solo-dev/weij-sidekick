@@ -1,0 +1,82 @@
+{
+  "id": "minimax",
+  "name": "MiniMax",
+  "order": 0,
+  "console_url": "https://platform.minimax.io/user-center/basic-information/interface-key",
+  "credentials": [{"key": "api_key", "secret": true}],
+  "regions": ["overseas", "domestic"],
+  "languages": ["yue", "zh", "en"],
+  "capabilities": {"tools": true, "vision": true, "streaming": true, "asr": true, "tts": true},
+  "llm": {
+    "api": "v1_chat_completion",
+    "url": {
+      "overseas": "https://api.minimax.io/v1/chat/completions",
+      "domestic": "https://api.minimaxi.com/v1/chat/completions"
+    },
+    "model": "MiniMax-M3",
+    "models": {"fast": "MiniMax-M3.1-Flash", "smart": "MiniMax-M3.1-Flash"},
+    "params": {"max_tokens_field": "max_completion_tokens", "max_tokens": 2048},
+    "extra_body": {},
+    "slot_extra_body": {
+      "fast": {"reasoning_effort": "minimal"},
+      "smart": {"reasoning_effort": "medium"}
+    },
+    "model_extra_body": {
+      "MiniMax-M3": {"thinking": {"type": "disabled"}}
+    },
+    "credential_map": {"api_key": "api_key"}
+  },
+  "asr": {
+    "api": "minimax_speech_to_text",
+    "url": {
+      "overseas": "https://api.minimax.io/v1/speech_to_text",
+      "domestic": "https://api.minimaxi.com/v1/speech_to_text"
+    },
+    "model": "asr-1.0",
+    "credential_map": {"api_key": "api_key"}
+  },
+  "tts": {
+    "api": "minimax_ws",
+    "url": {
+      "overseas": "wss://api.minimax.io/ws/v1/t2a_v2_bidi",
+      "domestic": "wss://api.minimaxi.com/ws/v1/t2a_v2_bidi"
+    },
+    "fallback_api": "minimax_sync",
+    "fallback_url": {
+      "overseas": "https://api.minimax.io/v1/t2a_v2",
+      "domestic": "https://api.minimaxi.com/v1/t2a_v2"
+    },
+    "model": "speech-2.8-turbo",
+    "params": {"sample_rate": 16000, "format": "pcm", "speed": 1.0},
+    "per_language": {"language_boost": {"yue": "Chinese,Yue", "zh": "Chinese", "en": "English", "*": "auto"}},
+    "credential_map": {"api_key": "api_key"}
+  },
+  "default_voice": {
+    "yue": "Cantonese_crisp_news_anchor_vv2",
+    "zh": "Chinese (Mandarin)_Warm_Girl",
+    "en": "English_Graceful_Lady"
+  },
+  "voices": {
+    "yue": [
+      {"id": "Cantonese_crisp_news_anchor_vv2", "name": "Crisp News Anchor"},
+      {"id": "Cantonese_ProfessionalHost（F)", "name": "Professional Host (F)"},
+      {"id": "Cantonese_ProfessionalHost（M)", "name": "Professional Host (M)"},
+      {"id": "Cantonese_GentleLady", "name": "Gentle Lady"},
+      {"id": "Cantonese_CuteGirl", "name": "Cute Girl"},
+      {"id": "Cantonese_PlayfulMan", "name": "Playful Man"}
+    ],
+    "zh": [
+      {"id": "Chinese (Mandarin)_Warm_Girl", "name": "Warm Girl"},
+      {"id": "Chinese (Mandarin)_Gentleman", "name": "Gentleman"},
+      {"id": "Chinese (Mandarin)_News_Anchor", "name": "News Anchor"},
+      {"id": "Chinese (Mandarin)_Lyrical_Voice", "name": "Lyrical Voice"},
+      {"id": "Chinese (Mandarin)_Cute_Spirit", "name": "Cute Spirit"}
+    ],
+    "en": [
+      {"id": "English_Graceful_Lady", "name": "Graceful Lady"},
+      {"id": "English_Trustworthy_Man", "name": "Trustworthy Man"},
+      {"id": "English_expressive_narrator", "name": "Expressive Narrator"},
+      {"id": "English_Gentle-voiced_man", "name": "Gentle-voiced Man"}
+    ]
+  }
+}
