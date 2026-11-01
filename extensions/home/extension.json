@@ -1,0 +1,27 @@
+{
+  "name": "home",
+  "version": "0.1.0",
+  "description": "Home Assistant: read entity states, call services (confirm for locks and alarms), watch entities for changes; a home subagent.",
+  "tools": "tools.py",
+  "watchers": "watchers.py",
+  "skills": [],
+  "mcp": [],
+  "subagent": {
+    "name": "home",
+    "role": "You control the smart home through Home Assistant. Use ha_state to check entities and ha_call to act (lights, switches, climate, media players). Confirm anything irreversible or safety-related with the person before doing it.",
+    "description": "smart home through Home Assistant",
+    "llm_slot": "smart",
+    "tools": ["ha_state", "ha_call", "ha_entities", "time_now"],
+    "skills": []
+  },
+  "default_enabled": false,
+  "settings": {
+    "type": "object",
+    "properties": {
+      "url": {"type": "string", "default": "", "description": "e.g. http://homeassistant.local:8123"},
+      "token": {"type": "string", "default": "", "secret": true, "description": "long-lived access token"},
+      "watch_entities": {"type": "array", "default": [], "description": "entity ids whose state changes become ha.state events"},
+      "poll_seconds": {"type": "integer", "default": 15}
+    }
+  }
+}

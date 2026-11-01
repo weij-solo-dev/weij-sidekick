@@ -1,0 +1,45 @@
+{
+  "name": "robot",
+  "version": "0.1.0",
+  "description": "The robot's body as agent tools: look, express, look_at, who_is_here, privacy_mode, enroll_voice, set_volume, befriending (people_seen, befriend, decline_befriend); skills robot body, befriending, initiative, storytelling; automations befriend (person.ready) and greet (greet.due).",
+  "tools": "tools.py",
+  "watchers": null,
+  "skills": [
+    "skill_robot_body.md",
+    "skill_befriending.md",
+    "skill_initiative.md",
+    "skill_storytelling.md"
+  ],
+  "mcp": [],
+  "subagent": null,
+  "default_enabled": true,
+  "settings": {
+    "type": "object",
+    "properties": {
+      "describe_with_vision": {
+        "type": "boolean",
+        "default": true,
+        "description": "Describe camera snapshots with the smart LLM slot when it supports images"
+      },
+      "enroll_utterances": {
+        "type": "integer",
+        "default": 3,
+        "description": "Utterances to collect for a conversational voice enrollment"
+      }
+    }
+  },
+  "automations": [
+    {
+      "name": "befriend",
+      "event": "person.ready",
+      "delivery": "in_person",
+      "prompt": "Someone you keep hearing is ready to be befriended; the event data names their person_id. Follow the befriending skill: if that person is here and chatting, ask their name warmly in their language, confirm it, ask whether they want to be remembered, then call befriend. If they are not around or busy, answer NO_REPLY."
+    },
+    {
+      "name": "greet",
+      "event": "greet.due",
+      "delivery": "in_person",
+      "prompt": "A household member you know has just made eye contact with you after being away for a while; the event data gives their name, how many hours they were away (absent_h) and their language. Follow the initiative skill: greet them by name in their language with one short, warm sentence, add at most one thing that is actually due for them (a reminder, a message someone left), and nothing else. Never mention the camera or that you were watching. If it is late at night or they seem busy or mid-conversation with someone, answer NO_REPLY."
+    }
+  ]
+}

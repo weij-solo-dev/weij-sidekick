@@ -1,0 +1,26 @@
+{
+  "name": "news",
+  "version": "0.1.0",
+  "description": "News feeds (RSS/Atom/JSON Feed, Hacker News, Telegram channels) with a briefing subagent.",
+  "tools": "tools.py",
+  "watchers": "watchers.py",
+  "skills": ["skill_briefing.md"],
+  "mcp": [],
+  "subagent": {
+    "name": "news",
+    "role": "You are the household's news reader. Use news_latest and news_search to find items, then write a short briefing in the household's language: three items at most, one sentence each, no URLs, no markdown.",
+    "description": "reads the configured news feeds and prepares briefings",
+    "llm_slot": "smart",
+    "tools": ["news_latest", "news_search", "news_sources", "time_now", "skill_read"],
+    "skills": ["briefing"]
+  },
+  "default_enabled": true,
+  "settings": {
+    "type": "object",
+    "properties": {
+      "sources": {"type": "array", "default": ["https://news.ycombinator.com/", "https://feeds.bbci.co.uk/zhongwen/trad/rss.xml"], "description": "Feed URLs: RSS/Atom/JSON Feed, https://news.ycombinator.com/, https://t.me/<channel>"},
+      "interval_minutes": {"type": "integer", "default": 30, "description": "How often to fetch"},
+      "hn_min_score": {"type": "integer", "default": 100}
+    }
+  }
+}
