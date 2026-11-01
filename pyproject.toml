@@ -1,0 +1,84 @@
+[project]
+name = "sidekick"
+version = "0.1.0"
+description = "Desktop home-butler agent with a Reachy Mini body"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "weij" }]
+dependencies = [
+    # All HTTP traffic: MiniMax chat SSE, ASR multipart upload, TTS HTTP, Telegram Bot API later.
+    "httpx>=0.28,<1",
+    # MiniMax TTS bidirectional WebSocket (/ws/v1/t2a_v2_bidi).
+    "websockets>=13,<16",
+    # Validation of config spec, provider presets and extension manifests.
+    "pydantic>=2.9,<3",
+    # Audio buffers shared by vad / asr / tts / body.
+    "numpy>=2.0,<3",
+    # Local audio front end: silero VAD and SenseVoice ASR (wake-name spotting, fallback ASR).
+    "sherpa-onnx>=1.12",
+    # Robot SDK and daemon (`reachy-mini-daemon` is spawned by `sidekick daemon start`).
+    "reachy-mini (>=1.12,<2)",
+    # 2026-10-26: gstreamer 1.28.8 plugin wheels exist for Windows only; pin until macOS/Linux
+    # wheels are published (pulled transitively by reachy-mini's gstreamer-bundle).
+    "gstreamer-plugins (<1.28.8)",
+    "gstreamer-plugins-gpl (<1.28.8)",
+    "gstreamer-plugins-gpl-restricted (<1.28.8)",
+    "gstreamer-plugins-restricted (<1.28.8)",
+    "gstreamer-plugins-libs (<1.28.8)",
+    # Dashboard web app on 127.0.0.1:8787 (also a reachy-mini dependency).
+    "fastapi (>=0.115,<1)",
+    # ASGI server for the dashboard.
+    "uvicorn (>=0.30,<1)",
+    # Official MCP client SDK, used only as a transport to external MCP servers (AGENTS.md principle 2).
+    "mcp (>=1.2,<2)",
+    # QR codes for `sidekick wechat login` (terminal) and the dashboard (PNG); pure Python, no deps.
+    "segno (>=1.6,<2)",
+    # Face detection (YuNet) and embedding (SFace) for contact identification; headless build.
+    "opencv-python-headless (>=4.10,<6)",
+]
+
+[project.scripts]
+sidekick = "sidekick.cli:main"
+
+[tool.poetry]
+packages = [{ include = "sidekick", from = "src" }]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8"
+pytest-asyncio = ">=0.24"
+ruff = ">=0.6"
+mypy = ">=1.11"
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "hardware: needs the robot and its daemon",
+    "network: needs internet access and real credentials in .derived_data/config.json",
+    "slow: downloads models or runs heavy local inference",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "D", "B", "UP", "RUF", "C4"]
+# D400/D415/D401: module headers are "sidekick.<module>.<file> — <one line>" and property
+# docstrings are noun phrases by convention (AGENTS.md "Module structure rules").
+# B008: frozen-dataclass defaults in signatures are immutable and intentional.
+# RUF001-003: Chinese punctuation in strings and docstrings is intended.
+ignore = ["D203", "D213", "D107", "D105", "D400", "D415", "D401", "B008", "E501", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+strict = true
+ignore_missing_imports = true
