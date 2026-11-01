@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sidekick · Live</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234b63d6'/%3E%3Ctext x='16' y='22' font-size='18' font-family='sans-serif' font-weight='700' text-anchor='middle' fill='%23fff'%3ES%3C/text%3E%3C/svg%3E">
+<script type="importmap">{"imports": {"three": "/dashboard_three.module.min.js"}}</script>
+<style>
+  /* Console: the module list on the left (one entry per core module, a status dot each), one
+     page per module on the right made of that module's submodule cards; every page aggregates its
+     own monitoring, parameters and debugging (PLAN.md block #44), and a page that outgrows two
+     screens shows one view at a time from the bar at its top (block #59). Light by default, dark
+     follows the system; every colour is a token. */
+  :root {
+    --bg:#f7f7f8; --panel:#ffffff; --panel-2:#f0f0f3; --line:#e4e5ea; --line-2:#d5d7de; --fg:#1b1d23; --dim:#6b7180;
+    --acc:#4b63d6; --acc-fg:#ffffff; --acc-soft:#e9ecfa; --ok:#1f8a4c; --warn:#b7791f; --bad:#d23f3f;
+    --bubble:#eef0f5; --canvas:#101217; --shadow:0 1px 2px rgba(20,22,30,.05), 0 6px 20px rgba(20,22,30,.05);
+    --side:212px; --rail:340px; --r:14px; color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg:#1b1c21; --panel:#24262d; --panel-2:#17181d; --line:#31343d; --line-2:#3d414c; --fg:#e8e9ee; --dim:#9aa0b0;
+    --acc:#8aa0ff; --acc-fg:#0e1230; --acc-soft:#2b3150; --ok:#4cc26b; --warn:#e0a83b; --bad:#f06a6a;
+    --bubble:#2d3040; --canvas:#0e1014; --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25); color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg:#1b1c21; --panel:#24262d; --panel-2:#17181d; --line:#31343d; --line-2:#3d414c; --fg:#e8e9ee; --dim:#9aa0b0;
+    --acc:#8aa0ff; --acc-fg:#0e1230; --acc-soft:#2b3150; --ok:#4cc26b; --warn:#e0a83b; --bad:#f06a6a;
+    --bubble:#2d3040; --canvas:#0e1014; --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25); color-scheme: dark; }
+  * { box-sizing: border-box; scrollbar-width:thin; scrollbar-color:var(--line-2) transparent; }
+  [hidden] { display:none !important; }
+  html, body { height:100%; }
+  body { margin:0; font: 15px/1.5 -apple-system, "Helvetica Neue", "PingFang HK", "PingFang SC", "Noto Sans CJK TC", "Segoe UI", sans-serif; background:var(--bg); color:var(--fg); -webkit-font-smoothing:antialiased; }
+  /* two columns: the module list on the left, the page on the right; no fixed monitor rail —
+     every monitor card lives on its module's page */
+  .shell { display:grid; grid-template-columns:var(--side) minmax(0,1fr); height:100vh; }
+  aside.side { height:100vh; overflow:auto; background:var(--panel-2); border-right:1px solid var(--line); display:flex; flex-direction:column; gap:16px; padding:18px 12px; }
+  .brand { display:flex; align-items:center; min-height:28px; padding:0 10px; }
+  .brand b { font-weight:700; font-size:17px; letter-spacing:-.015em; white-space:nowrap; }
+  nav { display:flex; flex-direction:column; gap:2px; }
+  .menu-btn, .menu-backdrop { display:none; }
+  nav button[data-tab] { display:flex; align-items:center; gap:11px; width:100%; height:38px; padding:0 10px; text-align:left; background:transparent; color:var(--dim); border:0; border-radius:9px; cursor:pointer; font:inherit; font-size:14px; font-weight:500; white-space:nowrap; box-shadow:none; transition:background .12s, color .12s; }
+  nav button[data-tab] svg { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  nav button[data-tab]:hover { background:var(--panel); color:var(--fg); }
+  nav button[data-tab].active { background:var(--acc-soft); color:var(--acc); font-weight:600; }
+  nav button[data-tab] .dot { margin-left:auto; width:7px; height:7px; border-radius:50%; background:transparent; flex:none; }
+  nav button[data-tab] .dot.ok { background:var(--ok); } nav button[data-tab] .dot.warn { background:var(--warn); } nav button[data-tab] .dot.bad { background:var(--bad); } nav button[data-tab] .dot.acc { background:var(--acc); }
+  .state { padding:2px 10px; border-radius:999px; background:var(--panel); border:1px solid var(--line); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:.04em; display:inline-block; width:max-content; }
+  .state.idle { color:var(--acc); } .state.engaged { color:var(--ok); } .state.speaking { color:var(--warn); } .state.sleeping, .state.off { color:var(--dim); }
+  main { min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+  .content { padding:24px 28px 48px; max-width:1400px; overflow:auto; flex:1; width:100%; }
+  section { display:none; } section.active { display:block; }
+  /* views (PLAN.md block #59): a page that outgrows two screens shows one view per submodule,
+     switched by the bar at its top (#agent/tools) that also carries the key numbers; a view is one
+     full-width board or two independent column stacks, so no row leaves a hole */
+  .viewbar { position:sticky; top:-24px; z-index:6; display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; margin:-24px -28px 18px; padding:14px 28px 12px; background:var(--bg); border-bottom:1px solid var(--line); }
+  .viewbar button { flex:none; display:flex; align-items:center; gap:7px; height:34px; padding:0 13px; border:0; border-radius:9px; background:transparent; color:var(--dim); font-size:14px; font-weight:500; box-shadow:none; white-space:nowrap; }
+  .viewbar button:hover { background:var(--panel); color:var(--fg); }
+  .viewbar button.active { background:var(--acc-soft); color:var(--acc); font-weight:600; }
+  .viewbar button small { color:inherit; opacity:.72; font-size:12px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .viewbar button small:empty { display:none; }
+  .view { display:none; }
+  .view.active { display:flex; flex-direction:column; gap:14px; }
+  @media (max-width: 900px) { .viewbar { position:static; margin:-16px -14px 14px; padding:10px 14px; } }
+  /* Live = now, the module page = depth (PLAN.md blocks #67 / #69): camera, 3D body and Now on
+     top; below, the dialogue (one screen tall) and the activity stream on the left, the Turn card
+     and one card per core module in two designed column stacks on the right — no row pairs two
+     cards, so nothing leaves a hole. The camera and 3D cards are single views (one MJPEG stream,
+     one WebGL context) that move into Body's slots when Body opens. */
+  section#tab-live.active { display:flex; flex-direction:column; gap:16px; flex:1; min-height:0; padding:24px 28px 40px; overflow:auto; }
+  .live-top { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px; }
+  .live-lower { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:start; }
+  .live-left, .live-right, .mod-col { display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .mod-cols { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:start; }
+  .slot { display:flex; flex-direction:column; min-width:0; }
+  .slot > .card { flex:1; }
+  .slot > .card h3 { display:flex; align-items:baseline; gap:8px; }
+  .slot > .card h3 small { margin-left:auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .live-board .live-chat { flex:none; height:min(72vh, 780px); min-height:420px; position:relative; }
+  .live-chat .scroll { padding:6px 4px 10px; }
+  .tl-rows { display:flex; flex-direction:column; gap:18px; }
+  .tl-live:empty { display:none; }
+  .chat .day { align-self:center; padding:2px 11px; border-radius:999px; background:var(--panel-2); color:var(--dim); font-size:11.5px; }
+  .chat .day.dim { background:none; padding:0; }
+  .to-latest { position:absolute; left:50%; bottom:16px; transform:translateX(-50%); padding:5px 14px; border-radius:999px; font-size:12.5px; box-shadow:var(--shadow); }
+  .live-chat .empty { margin-top:7vh; }
+  #tab-live.active ~ .content { display:none; }
+  /* a card title is a link to its module page; the dot is the card's own verdict */
+  .live-board .card h3 a { color:inherit; text-decoration:none; cursor:pointer; }
+  .live-board .card h3 a:hover { color:var(--acc); }
+  .live-board .card h3 .st { width:7px; height:7px; border-radius:50%; background:var(--line-2); flex:none; align-self:center; }
+  .live-board .card h3 .st.ok { background:var(--ok); } .live-board .card h3 .st.warn { background:var(--warn); } .live-board .card h3 .st.bad { background:var(--bad); } .live-board .card h3 .st.acc { background:var(--acc); }
+  .live-board .mod .kv { grid-template-columns:minmax(64px, auto) minmax(0,1fr); }
+  .live-board .mod .kv div:nth-child(even) { white-space:normal; overflow:visible; overflow-wrap:anywhere; }
+  .mod .kv b { font-weight:600; }
+  .mod .kv .sub { color:var(--dim); }
+  /* Now: the engagement machine, the meters, the newest decisions */
+  .now-line { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 6px; font-size:12.5px; }
+  .now-line .badge { padding:1px 8px; border-radius:999px; border:1px solid var(--warn); color:var(--warn); font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .now-decisions { display:flex; flex-direction:column; gap:3px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); font-size:12px; }
+  .now-decisions div { display:grid; grid-template-columns:58px 48px minmax(0,1fr); gap:6px; white-space:nowrap; }
+  .now-decisions div span:last-child { overflow:hidden; text-overflow:ellipsis; }
+  .now-decisions .accept { color:var(--ok); } .now-decisions .reject { color:var(--dim); }
+  /* Turn: heard / said, the waterfall of marks, a chip per tool call */
+  .turn-text { display:grid; grid-template-columns:auto minmax(0,1fr); gap:3px 10px; font-size:13px; margin-bottom:10px; }
+  .turn-text div:nth-child(odd) { color:var(--dim); font-size:12px; }
+  .turn-text div:nth-child(even) { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .waterfall { display:flex; height:14px; border-radius:7px; overflow:hidden; background:var(--panel-2); border:1px solid var(--line); }
+  .waterfall i { display:block; height:100%; min-width:2px; }
+  .waterfall i.asr { background:#8d7bd6; } .waterfall i.llm { background:var(--acc); } .waterfall i.tts { background:var(--warn); } .waterfall i.say { background:var(--ok); opacity:.55; }
+  .marks { display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:7px; font-size:12px; color:var(--dim); }
+  .marks b { color:var(--fg); font-weight:600; font-variant-numeric:tabular-nums; }
+  .marks .key i { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:0; }
+  .turn-big { display:flex; align-items:baseline; gap:10px; margin:0 0 8px; }
+  .turn-big b { font-size:24px; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .turn-big b.ok { color:var(--ok); } .turn-big b.warn { color:var(--warn); } .turn-big b.bad { color:var(--bad); }
+  .turn-big span { color:var(--dim); font-size:12.5px; }
+  .tool-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
+  .tool-chips span { padding:1px 9px; border-radius:999px; border:1px solid var(--line-2); font:500 11.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; color:var(--dim); }
+  .tool-chips span.ok { color:var(--ok); border-color:var(--ok); } .tool-chips span.bad { color:var(--bad); border-color:var(--bad); } .tool-chips span.run { color:var(--acc); border-color:var(--acc); }
+  /* Activity: what every module did, newest first, module chips as the filter */
+  .activity { display:flex; flex-direction:column; max-height:440px; overflow:auto; font-size:12.5px; }
+  .activity .act { display:grid; grid-template-columns:62px 82px minmax(0,1fr); gap:8px; padding:4px 0; border-bottom:1px solid var(--line); align-items:baseline; }
+  .activity .act:last-child { border-bottom:0; }
+  .activity .act time { color:var(--dim); font-variant-numeric:tabular-nums; font-size:11.5px; }
+  .activity .act .m { color:var(--dim); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .activity .act .t { overflow-wrap:anywhere; }
+  .activity .act.warn .t { color:var(--warn); } .activity .act.bad .t { color:var(--bad); } .activity .act.dim .t { color:var(--dim); }
+  #activity-card .chips { margin:0 0 8px; }
+  @media (max-width: 1180px) { .live-lower { grid-template-columns:minmax(0,1fr); } }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; min-width:0; box-shadow:var(--shadow); }
+  .card h3 { margin:0 0 10px; font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+  .card h3 small { text-transform:none; letter-spacing:0; font-weight:400; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:5px 14px; font-size:14px; }
+  .kv div:nth-child(odd) { color:var(--dim); }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); } .dim { color:var(--dim); }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  td.wrap { overflow-wrap:anywhere; }  /* long free text / JSON cells break anywhere; short columns keep their width */
+  .card { overflow-x:auto; }
+  .live-board .card { overflow:visible; }
+  th { color:var(--dim); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+  tr.accept td:first-child { border-left:3px solid var(--ok); } tr.reject td:first-child { border-left:3px solid var(--line-2); }
+  input, select, textarea { background:var(--panel); color:var(--fg); border:1px solid var(--line-2); border-radius:10px; padding:8px 11px; font:inherit; font-size:14px; }
+  input:focus, select:focus, textarea:focus { outline:2px solid var(--acc-soft); border-color:var(--acc); }
+  button { background:var(--panel); color:var(--fg); border:1px solid var(--line-2); border-radius:10px; padding:7px 12px; font:inherit; font-size:14px; cursor:pointer; box-shadow:0 1px 1px rgba(20,22,30,.04); }
+  button:hover { background:var(--panel-2); }
+  button:disabled { opacity:.45; cursor:default; }
+  button.primary { background:var(--acc); color:var(--acc-fg); border-color:var(--acc); font-weight:600; }
+  button.primary:hover { filter:brightness(1.07); background:var(--acc); }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0; }
+  .meter { height:8px; background:var(--panel-2); border-radius:4px; overflow:hidden; }
+  .meter i { display:block; height:100%; background:var(--ok); width:0; transition:width .2s; }
+  pre { background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px; max-height:60vh; overflow:auto; font-size:12.5px; }
+  audio { height:28px; }
+  td audio { width:180px; }  /* the decisions table has twelve columns; a narrow player keeps it inside the card */
+  .toggle { display:flex; gap:8px; align-items:center; padding:4px 0; }
+  small { color:var(--dim); }
+  code { font-size:12.5px; background:var(--panel-2); border-radius:5px; padding:1px 5px; }
+  /* parameter cards (rendered from /api/config/schema) and service cards (one per slot) */
+  .p-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; align-items:center; padding:6px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .p-row:last-of-type { border-bottom:0; }
+  .p-row .p-name { min-width:0; }
+  .p-row .p-name small { display:block; font-size:11.5px; line-height:1.35; }
+  .p-row input[type=number], .p-row input[type=text] { width:120px; padding:5px 8px; font-size:13px; }
+  .p-row select { padding:5px 8px; font-size:13px; }
+  .p-row.wide { grid-template-columns:1fr; } .p-row.wide input { width:100%; }
+  .p-row .p-range { display:flex; gap:8px; align-items:center; width:200px; }
+  .p-row .p-range output { width:40px; text-align:right; font-variant-numeric:tabular-nums; font-size:12.5px; }
+  .p-row .flags { display:flex; gap:12px; flex-wrap:wrap; }
+  .p-row .flags label { display:flex; gap:5px; align-items:center; font-size:13px; }
+  .p-status { font-size:12px; color:var(--dim); min-height:16px; margin-top:6px; }
+  .p-status.bad { color:var(--bad); }
+  details.p-fold summary { cursor:pointer; color:var(--dim); font-size:12.5px; padding:6px 0; }
+  .svc h3 .key { margin-left:auto; }
+  [data-services] { display:flex; flex-direction:column; gap:14px; }
+  .svc [data-svc-result] { font-size:12.5px; }
+  .svc .svc-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:8px 10px; }
+  .svc label.f { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--dim); min-width:0; }
+  .svc label.f input, .svc label.f select { width:100%; padding:6px 9px; font-size:13px; }
+  .col { display:flex; flex-direction:column; gap:14px; min-width:0; }
+  .two-col { display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:14px; align-items:start; }
+  /* readiness (rail card + System page) */
+  .ready { display:flex; gap:8px; align-items:center; margin:2px 0 6px; }
+  .ready .verdict { flex:1; font-weight:600; font-size:13px; }
+  .ready .verdict.bad { color:var(--bad); } .ready .verdict.warn { color:var(--warn); } .ready .verdict.ok { color:var(--ok); }
+  .ready button { padding:3px 10px; font-size:12px; }
+  .ready-rows { display:flex; flex-direction:column; gap:4px; font-size:12.5px; margin-bottom:6px; }
+  .ready-rows .r { display:grid; grid-template-columns:8px minmax(0,1fr) auto; gap:8px; align-items:baseline; }
+  .ready-rows .r i { width:7px; height:7px; border-radius:50%; display:inline-block; background:var(--warn); margin-top:5px; }
+  .ready-rows .r.bad i { background:var(--bad); }
+  .ready-rows .r .d { color:var(--dim); font-size:11.5px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ready-rows .r a { color:var(--acc); cursor:pointer; font-size:12px; white-space:nowrap; }
+  .card.pinned { border-color:var(--bad); }
+  .empty .ready-call { margin-top:14px; }
+  .lvl { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; border:1px solid var(--line); }
+  .lvl.ok { color:var(--ok); } .lvl.warn { color:var(--warn); } .lvl.bad { color:var(--bad); border-color:var(--bad); }
+  /* live: conversation centre, monitor rail right */
+  .chat { display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; overflow:hidden; }
+  .chat .scroll { flex:1; min-height:0; overflow:auto; padding:28px 24px 12px; }
+  .chat .inner { max-width:780px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+  .empty { margin:14vh auto 0; text-align:center; max-width:46ch; color:var(--dim); }
+  .empty h1 { font-size:26px; font-weight:600; color:var(--fg); margin:0 0 8px; letter-spacing:-.01em; }
+  .msg { display:flex; gap:12px; align-items:flex-start; }
+  .msg.user { flex-direction:row-reverse; }
+  .msg .avatar { width:30px; height:30px; border-radius:50%; background:var(--acc); color:var(--acc-fg); display:grid; place-items:center; font-weight:700; font-size:13px; flex:none; margin-top:2px; }
+  .msg.user .avatar { background:var(--panel-2); color:var(--dim); border:1px solid var(--line); }
+  .msg .body { min-width:0; max-width:min(80%, 640px); }
+  .msg.bot .body { max-width:100%; }
+  .msg .bubble { padding:10px 14px; border-radius:18px; white-space:pre-wrap; line-height:1.55; }
+  .msg.user .bubble { background:var(--bubble); border-bottom-right-radius:6px; }
+  .msg.bot .bubble { padding:6px 0; }
+  .msg.note .bubble { background:var(--panel-2); border:1px solid var(--line); color:var(--dim); font-size:13px; }
+  .msg .meta { font-size:11.5px; color:var(--dim); margin-top:4px; padding:0 4px; }
+  .msg.user .meta { text-align:right; }
+  .msg.live .bubble { color:var(--dim); }
+  .pulse { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity:.45 } 50% { opacity:1 } }
+  .composer { padding:8px 24px 22px; flex:none; }
+  .composer .box { max-width:780px; margin:0 auto; display:flex; gap:10px; align-items:flex-end; background:var(--panel); border:1px solid var(--line-2); border-radius:22px; padding:10px 10px 10px 18px; box-shadow:var(--shadow); }
+  .composer .box:focus-within { border-color:var(--acc); outline:3px solid var(--acc-soft); }
+  .composer textarea { flex:1; border:0; outline:0 !important; background:transparent; resize:none; max-height:160px; padding:6px 0; font-size:15px; line-height:1.45; }
+  .composer button.primary { width:38px; height:38px; border-radius:50%; padding:0; display:grid; place-items:center; flex:none; }
+  .composer button.primary svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .composer .hint { max-width:780px; margin:8px auto 0; font-size:12px; color:var(--dim); display:flex; gap:12px; justify-content:space-between; padding:0 6px; }
+  .live-board { font-size:13px; }
+  .live-board .card { padding:12px 14px; }
+  .live-board .card h3 { margin-bottom:8px; display:flex; align-items:baseline; gap:8px; font-size:11px; }
+  .live-board .card h3 small { margin-left:auto; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .live-board .kv { font-size:12.5px; gap:3px 10px; }
+  .live-board .kv div:nth-child(even) { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cam img { width:100%; aspect-ratio:16/9; object-fit:cover; background:#000; border-radius:10px; display:block; }
+  .robot3d { width:100%; aspect-ratio:16/9; background:var(--canvas); border-radius:10px; overflow:hidden; position:relative; }
+  .robot3d canvas { display:block; width:100% !important; height:100% !important; }
+  .robot3d .hint { position:absolute; right:8px; bottom:6px; font-size:11px; color:#8b93a7; }
+  .bar-row { display:grid; grid-template-columns:50px 1fr 64px; align-items:center; gap:8px; margin:5px 0; }
+  .bar { position:relative; height:12px; background:var(--panel-2); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .bar i { position:absolute; left:0; top:0; bottom:0; width:0; background:var(--ok); transition:width .08s linear; }
+  .bar i.hot { background:var(--warn); } .bar i.clip { background:var(--bad); }
+  .bar b { position:absolute; top:0; bottom:0; width:2px; left:0; background:var(--fg); opacity:.6; transition:left .08s linear; }
+  .bar-row .lbl { color:var(--dim); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; }
+  .bar-row .db { font-variant-numeric:tabular-nums; font-size:12px; text-align:right; color:var(--dim); }
+  .cam-wrap { position:relative; }
+  .cam-faces { position:absolute; inset:0; pointer-events:none; }
+  .cam-faces .face { position:absolute; border:2px solid var(--ok); border-radius:4px; box-shadow:0 0 0 1px rgba(0,0,0,.4); }
+  .cam-faces .face.unknown { border-color:var(--warn); }
+  .cam-faces .face span { position:absolute; left:-2px; bottom:100%; background:var(--ok); color:#fff; font-size:10px; padding:0 5px; border-radius:3px 3px 0 0; white-space:nowrap; }
+  .cam-faces .face.unknown span { background:var(--warn); }
+  .status-kv { display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:12.5px; }
+  .status-kv div:nth-child(odd) { color:var(--dim); }
+  .events { font-size:12px; color:var(--dim); max-height:150px; overflow:auto; line-height:1.5; }
+  @media (max-width: 1100px) { :root { --side:184px; } }
+  /* robot: the controls and tests in the left column, the body's parameters on the right */
+  .robot-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+  .robot-inner { display:flex; flex-direction:column; gap:14px; }
+  .robot-inner .card h3 { display:flex; align-items:baseline; gap:8px; }
+  .robot-inner .card h3 small { margin-left:auto; text-transform:none; letter-spacing:0; font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  @media (max-width: 1250px) { .robot-grid { grid-template-columns:1fr; } }
+  .rb-kv b { font-weight:500; }
+  .sliders { display:flex; flex-direction:column; gap:6px; margin:10px 0; }
+  .sliders label { display:grid; grid-template-columns:118px minmax(0,1fr) 62px; gap:10px; align-items:center; font-size:13px; color:var(--dim); }
+  .sliders output { text-align:right; font-variant-numeric:tabular-nums; color:var(--fg); font-size:12.5px; }
+  input[type=range] { width:100%; accent-color:var(--acc); padding:0; border:0; background:transparent; }
+  .sliders.off { opacity:.45; pointer-events:none; }
+  .rb-media img, .rb-media video { width:100%; border-radius:10px; margin-top:8px; display:block; background:#000; }
+  .pill { padding:2px 10px; border-radius:999px; border:1px solid var(--line); background:var(--panel-2); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .pill.held { color:var(--warn); border-color:var(--warn); }
+  .pill.free { color:var(--ok); }
+  .expr-groups { display:grid; gap:12px; margin-top:4px; }
+  .expr-group h4 { margin:0 0 6px; font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--dim); }
+  .expr-group h4 small { text-transform:none; letter-spacing:0; font-weight:400; margin-left:6px; }
+  .expr-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .expr-list button { padding:5px 10px; font-size:13px; border-radius:8px; }
+  .expr-list button.playing { border-color:var(--acc); color:var(--acc); }
+  .expr-intensity { display:flex; gap:8px; align-items:center; color:var(--dim); font-size:13px; }
+  .expr-intensity output { min-width:2.4em; color:var(--fg); }
+  .enroll .steps button.active { background:var(--acc-soft); border-color:var(--acc); font-weight:600; }
+  .enroll .steps button.done::before { content:"✓ "; color:var(--ok); }
+  .enroll .prompt { font-size:20px; font-weight:600; margin:8px 0 4px; letter-spacing:-.01em; }
+  .enroll .count { font-size:40px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--acc); line-height:1; min-width:60px; }
+  .enroll .preview { position:relative; max-width:640px; }
+  .enroll .preview img { width:100%; border-radius:10px; background:#000; display:block; aspect-ratio:16/9; object-fit:cover; }
+  .enroll .takes { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; font-size:13px; }
+  .enroll .takes span { padding:3px 10px; border-radius:999px; background:var(--panel-2); border:1px solid var(--line); }
+  .enroll .takes span.ok { border-color:var(--ok); color:var(--ok); }
+  .enroll form, .enroll .fields { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+  .enroll label.f { display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--dim); }
+  .enroll label.f input, .enroll label.f select { width:100%; }
+  .tv-zone { position:relative; display:inline-block; max-width:100%; }
+  .tv-zone img { max-width:100%; display:block; border-radius:10px; border:1px solid var(--line); background:#000; aspect-ratio:16/9; object-fit:cover; width:560px; cursor:crosshair; }
+  .tv-zone .rect { position:absolute; border:2px solid var(--warn); background:rgba(210,153,34,.2); pointer-events:none; display:none; }
+  @media (max-width: 900px) {
+    .shell { grid-template-columns:1fr; height:auto; }
+    /* phones: a sticky bar with the brand and a menu button (the current module); the module list drops down */
+    aside.side { height:auto; min-height:54px; flex-direction:row; align-items:center; gap:8px; padding:0 10px 0 16px; position:sticky; top:0; z-index:30; overflow:visible; border-right:0; border-bottom:1px solid var(--line); }
+    .brand { padding:0; } .brand b { font-size:16px; }
+    .menu-btn { display:flex; align-items:center; gap:10px; margin-left:auto; height:40px; padding:0 12px 0 14px; border-radius:10px; border:1px solid var(--line-2); background:var(--panel); color:var(--fg); font:inherit; font-size:14px; font-weight:600; box-shadow:none; cursor:pointer; }
+    .menu-btn svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
+    nav { display:none; position:absolute; top:100%; left:0; right:0; padding:8px 10px 12px; background:var(--panel-2); border-bottom:1px solid var(--line); box-shadow:0 14px 30px rgba(0,0,0,.28); max-height:calc(100vh - 54px); overflow:auto; }
+    .shell.menu-open nav { display:flex; }
+    .shell.menu-open .menu-backdrop { display:block; position:fixed; inset:0; z-index:20; background:rgba(10,12,18,.45); }
+    nav button[data-tab] { height:48px; font-size:15px; }
+    main { height:auto; overflow:visible; } .content { padding:16px 14px 40px; }
+    /* phones: one column — Now, Turn, the dialogue, the modules, the activity, camera, 3D body */
+    section#tab-live.active { overflow:visible; padding:14px; gap:14px; }
+    .live-top, .live-lower, .live-left, .live-right, .mod-cols, .mod-col { display:contents; }
+    #now-card { order:1; } #turn-card { order:2; } .live-chat { order:3; height:72vh; } .mod { order:4; } #activity-card { order:5; } .live-top .slot { order:6; }
+  }
+  /* replay */
+  .chunk-strip { display:grid; grid-template-columns:repeat(288, 1fr); gap:1px; height:26px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:2px; overflow:hidden; }
+  .chunk-strip i { display:block; background:transparent; border-radius:1px; cursor:default; }
+  .chunk-strip i.has { background:var(--line-2); cursor:pointer; } .chunk-strip i.a1 { background:#6fbf8a; } .chunk-strip i.a2 { background:var(--ok); } .chunk-strip i.a3 { background:var(--warn); }
+  .chunk-strip i.open { background:var(--acc); } .chunk-strip i.sel { outline:2px solid var(--fg); outline-offset:-1px; }
+  .chunk-strip i.err { background:var(--bad); }
+  .strip-hours { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); padding:2px 2px 0; }
+  .replay-grid { display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); gap:14px; margin-top:14px; }
+  .rp-video video { width:100%; aspect-ratio:16/9; background:#000; border-radius:10px; display:block; }
+  .rp-tracks canvas { width:100%; height:170px; display:block; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; cursor:crosshair; }
+  .rp-legend { display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--dim); margin:6px 0; }
+  .rp-legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
+  .live-wide { grid-column:1 / -1; }
+  .live-status { display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:13px; }
+  .live-status span b { color:var(--dim); font-weight:500; margin-right:4px; }
+  @media (max-width: 980px) { .replay-grid { grid-template-columns:1fr; } }
+  /* item boards (tools, MCP servers, skills): one card per item; a click opens its details window */
+  .board-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin:0 0 12px; }
+  .board-head h3 { margin:0; }
+  .board-head .grow { flex:1; min-width:180px; }
+  .board-head input[type=search] { width:200px; padding:5px 10px; font-size:13px; }
+  .items { display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:10px; }
+  .item { display:flex; flex-direction:column; align-items:stretch; gap:6px; min-width:0; padding:11px 13px; text-align:left; font:inherit; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:none; cursor:pointer; transition:border-color .12s, box-shadow .12s; }
+  .item:hover { border-color:var(--acc); background:var(--panel); box-shadow:var(--shadow); }
+  .item:focus-visible { outline:2px solid var(--acc); outline-offset:1px; }
+  .item .top { display:flex; align-items:center; gap:7px; min-width:0; }
+  .item .name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:600 13px/1.3 ui-monospace, "SF Mono", Menlo, monospace; }
+  .item .st { width:7px; height:7px; flex:none; border-radius:50%; background:var(--line-2); }
+  .item .st.ok { background:var(--ok); } .item .st.warn { background:var(--warn); } .item .st.bad { background:var(--bad); }
+  .item .desc { font-size:12.5px; line-height:1.4; color:var(--dim); overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .item .tags, .sheet .tags { display:flex; flex-wrap:wrap; gap:4px; }
+  .item .tags { margin-top:auto; }
+  .tag { padding:1px 7px; border-radius:999px; border:1px solid var(--line); color:var(--dim); font-size:10.5px; font-weight:500; white-space:nowrap; }
+  .tag.acc { color:var(--acc); border-color:var(--acc-soft); background:var(--acc-soft); }
+  .tag.warn { color:var(--warn); border-color:var(--warn); } .tag.bad { color:var(--bad); border-color:var(--bad); }
+  .board-head > button { padding:4px 11px; font-size:13px; }
+  /* an empty board says what belongs there and how to add the first one */
+  .blank { grid-column:1 / -1; display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:16px 18px; border:1px dashed var(--line-2); border-radius:12px; color:var(--dim); font-size:13.5px; line-height:1.5; }
+  .blank b { color:var(--fg); font-weight:600; }
+  .blank p { margin:0; max-width:72ch; }
+  /* the details window */
+  dialog.sheet { width:min(720px, calc(100vw - 32px)); max-height:min(84vh, 900px); padding:0; border:1px solid var(--line); border-radius:16px; background:var(--panel); color:var(--fg); box-shadow:0 24px 70px rgba(0,0,0,.35); }
+  dialog.sheet[open] { display:flex; flex-direction:column; }
+  dialog.sheet::backdrop { background:rgba(10,12,18,.5); }
+  .sheet-head { display:flex; align-items:flex-start; gap:12px; padding:16px 18px 12px; border-bottom:1px solid var(--line); }
+  .sheet-head .grow { flex:1; min-width:0; display:flex; flex-direction:column; gap:5px; }
+  .sheet-head h2 { margin:0; font:600 16px/1.3 ui-monospace, "SF Mono", Menlo, monospace; overflow-wrap:anywhere; }
+  .sheet-head .sub { font-size:12.5px; color:var(--dim); }
+  .sheet-head button.x { padding:2px 9px; font-size:14px; line-height:1.4; }
+  .sheet-body { display:flex; flex-direction:column; gap:16px; padding:14px 18px 18px; overflow:auto; min-height:0; }
+  .sheet-body h4 { margin:0 0 6px; font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--dim); }
+  .sheet-body p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .sheet-body table { font-size:13px; }
+  .sheet-body textarea { width:100%; min-height:min(46vh, 420px); resize:vertical; font:13px/1.5 ui-monospace, "SF Mono", Menlo, monospace; }
+  .sheet-body label.f { display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--dim); }
+  .sheet-body label.f input { width:100%; }
+  .sheet-body .fields { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+  .sheet-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1px solid var(--line); }
+  .sheet-body label.f select { width:100%; }
+  .sheet-body .prompt { max-height:min(34vh, 320px); overflow:auto; padding:10px 12px; border-radius:10px; background:var(--panel-2); font-size:12.5px; line-height:1.5; }
+  .sheet-body [data-params] .p-row:first-child { padding-top:0; }
+  .item.add { justify-content:center; align-items:flex-start; border-style:dashed; color:var(--dim); }
+  .item.add .name { color:var(--fg); }
+  .sheet-body textarea.role { min-height:9em; font-family:inherit; font-size:13px; line-height:1.5; }
+  .sheet-body .picks { display:flex; flex-wrap:wrap; gap:4px; margin-top:-8px; }
+  .sheet-body .picks button { padding:1px 9px; border-radius:999px; border:1px solid var(--line-2); background:transparent; box-shadow:none; color:var(--dim); font:500 11.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+  .sheet-body .picks button.on { color:var(--acc); border-color:var(--acc-soft); background:var(--acc-soft); }
+  button.danger { color:var(--bad); border-color:var(--bad); }
+  /* origin chips above an item board: a filter instead of one row per group, so the cards flow without gaps */
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
+  .chips button { padding:3px 11px; border-radius:999px; border:1px solid var(--line-2); background:transparent; color:var(--dim); font-size:12.5px; box-shadow:none; }
+  .chips button:hover { color:var(--fg); background:var(--panel-2); }
+  .chips button.active { background:var(--acc-soft); border-color:var(--acc-soft); color:var(--acc); font-weight:600; }
+  .chips button small { margin-left:5px; color:inherit; opacity:.75; font-variant-numeric:tabular-nums; }
+  .item .top .origin { margin-left:auto; flex:none; font-size:10.5px; color:var(--dim); white-space:nowrap; }
+  /* the Agent page's Swarm view: one row per agent, then the latest LLM calls (text clamped to two lines) */
+  .mono { font:600 13px/1.3 ui-monospace, "SF Mono", Menlo, monospace; }
+  .foot-note { display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:13px; color:var(--dim); }
+  .foot-note b { color:var(--fg); font-weight:500; margin-left:6px; } .foot-note b.bad { color:var(--bad); }
+  .card h3.with-action { display:flex; align-items:baseline; gap:8px; }
+  button.link { margin-left:auto; padding:0; border:0; background:none; box-shadow:none; color:var(--acc); font-size:12px; font-weight:500; text-transform:none; letter-spacing:0; }
+  button.link:hover { background:none; text-decoration:underline; }
+  .clamp { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  /* the Agent page's test card: a chat inside a card, the speaker picker in the composer, a chip per tool the turn called */
+  .test-chat { flex:none; height:calc(100vh - 150px); min-height:440px; }
+  .test-chat .scroll { padding:14px 8px 10px; }
+  .test-chat .composer { padding:8px 0 2px; }
+  .test-chat .empty { margin-top:10vh; }
+  .composer .box select { flex:none; align-self:center; max-width:170px; padding:5px 9px; border:0; border-radius:12px; background:var(--panel-2); font-size:13px; }
+  .msg .tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; padding:0 4px; }
+  .msg .bubble.bad { color:var(--bad); } .msg .bubble.dim { color:var(--dim); font-style:italic; }
+  button.tag { padding:1px 9px; border-radius:999px; border:1px solid var(--line-2); background:transparent; box-shadow:none; color:var(--dim); font:500 11.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+  button.tag:hover { color:var(--acc); border-color:var(--acc); background:transparent; }
+  @media (max-width: 900px) { .test-chat { height:74vh; } }
+  .nowrap-first td:first-child, .nowrap-meta td:not(.wrap) { white-space:nowrap; }
+  @media (max-width: 900px) { table.wide { min-width:600px; } }
+  pre.tall { max-height:calc(100vh - 190px); }
+  [data-services].svc-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); align-items:stretch; }
+  /* memory (block #70): one card per profile (facts by category, provenance as tags), the
+     writer, the episodes by day; a click on an episode opens its conversation */
+  .digest { margin:0 0 10px; padding:8px 11px; border-radius:10px; background:var(--panel-2); font-size:13px; line-height:1.5; }
+  .facts { display:flex; flex-direction:column; }
+  .fact { display:grid; grid-template-columns:86px minmax(0,1fr) auto; gap:4px 10px; padding:7px 0; border-bottom:1px solid var(--line); align-items:baseline; }
+  .fact:last-child { border-bottom:0; }
+  .fact .cat { color:var(--dim); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .fact .t { font-size:13.5px; overflow-wrap:anywhere; }
+  .fact .meta { grid-column:2 / 4; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; font-size:11.5px; color:var(--dim); }
+  .fact .meta a { color:var(--acc); cursor:pointer; }
+  .fact button { padding:1px 8px; font-size:12px; }
+  .fact.retired .t { color:var(--dim); text-decoration:line-through; }
+  details.retired-list summary { cursor:pointer; color:var(--dim); font-size:12.5px; padding:8px 0 2px; }
+  .episodes { display:flex; flex-direction:column; gap:8px; }
+  .episodes .day { align-self:flex-start; padding:2px 10px; border-radius:999px; background:var(--panel-2); color:var(--dim); font-size:11.5px; margin-top:4px; }
+  .ep { display:flex; flex-direction:column; gap:4px; width:100%; padding:10px 12px; text-align:left; font:inherit; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:none; cursor:pointer; }
+  .ep:hover { border-color:var(--acc); background:var(--panel); }
+  .ep .top { display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+  .ep .top b { font-size:14px; font-weight:600; }
+  .ep .top span { color:var(--dim); font-size:12px; }
+  .ep .sum { font-size:13px; line-height:1.5; color:var(--fg); overflow-wrap:anywhere; }
+  .ep .tags { display:flex; flex-wrap:wrap; gap:4px; }
+  .transcript { display:flex; flex-direction:column; gap:6px; font-size:13px; }
+  .transcript div { display:grid; grid-template-columns:44px 76px minmax(0,1fr); gap:8px; }
+  .transcript time, .transcript .who { color:var(--dim); font-size:12px; }
+  .transcript .tool { color:var(--dim); font-size:12px; }
+  /* the power control (block #87): a state pill by the name, its panel, the start dialog, toasts */
+  nav { flex:1; }
+  .power { display:flex; align-items:center; gap:11px; width:100%; margin-top:auto; padding:10px; border:1px solid var(--line); border-radius:11px; background:var(--panel); color:var(--fg); font:inherit; text-align:left; box-shadow:none; cursor:pointer; }
+  .power:hover { border-color:var(--acc); }
+  .power .pl { flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.25; }
+  .power .pl b { font-size:13.5px; font-weight:600; } .power .pl small { font-size:11.5px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .power svg { width:18px; height:18px; flex:none; fill:none; stroke:var(--dim); stroke-width:2; stroke-linecap:round; }
+  .pd, .svc-dot { width:8px; height:8px; border-radius:50%; background:var(--line-2); flex:none; }
+  .pd.ok, .svc-dot.ok { background:var(--ok); } .pd.warn, .svc-dot.warn { background:var(--warn); animation:pulse 1.2s ease-in-out infinite; } .pd.bad, .svc-dot.bad { background:var(--bad); }
+  @keyframes pulse { 50% { opacity:.35; } }
+  .power-panel { position:fixed; z-index:60; width:min(320px, calc(100vw - 32px)); padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--panel); box-shadow:0 18px 50px rgba(0,0,0,.25); display:flex; flex-direction:column; gap:10px; }
+  .power-panel .ps { display:flex; align-items:center; gap:8px; font-weight:600; }
+  .power-panel .pm { font-size:12.5px; color:var(--dim); line-height:1.45; }
+  .power-panel .pe { font-size:12.5px; color:var(--bad); overflow-wrap:anywhere; }
+  .power-panel .row { margin:0; justify-content:flex-end; }
+  nav button[data-tab] .dot.off { background:var(--line-2); }
+  [data-needs-service]:disabled { opacity:.45; cursor:not-allowed; }
+  .cam-wrap img:not([src]) { visibility:hidden; }  /* the robot is off: no broken-image box */
+  .start-sheet { width:min(560px, calc(100vw - 32px)); }
+  .start-sheet .sheet-head h2 { font:600 17px/1.3 inherit; font-family:inherit; }
+  .steps { display:flex; flex-direction:column; gap:2px; }
+  .step { display:grid; grid-template-columns:22px minmax(0,1fr) auto; gap:4px 8px; align-items:baseline; padding:6px 0; border-bottom:1px solid var(--line); }
+  .step:last-child { border-bottom:0; }
+  .step .si { width:18px; text-align:center; font-weight:700; }
+  .step .st { font-weight:600; } .step .sd { color:var(--dim); font-size:12.5px; margin-left:6px; }
+  .step .sm { color:var(--dim); font-size:12px; font-variant-numeric:tabular-nums; }
+  .step .items { grid-column:2 / -1; display:flex; flex-direction:column; gap:2px; }
+  .step .it { display:flex; gap:6px; font-size:12.5px; color:var(--dim); min-width:0; }
+  .step .it b { font-weight:600; color:var(--fg); white-space:nowrap; } .step .it span { overflow-wrap:anywhere; min-width:0; }
+  .step .it a { margin-left:auto; white-space:nowrap; color:var(--acc); cursor:pointer; }
+  .s-ok { color:var(--ok); } .s-warn { color:var(--warn); } .s-bad { color:var(--bad); } .s-pending, .s-skipped { color:var(--dim); }
+  .s-running::before { content:""; display:inline-block; width:11px; height:11px; border-radius:50%; border:2px solid var(--line-2); border-top-color:var(--acc); animation:spin .8s linear infinite; vertical-align:-1px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .sheet-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 18px 16px; border-top:1px solid var(--line); }
+  .sheet-foot:empty { display:none; }
+  .start-error { color:var(--bad); font-size:13px; overflow-wrap:anywhere; }
+  .toasts { position:fixed; right:max(16px, env(safe-area-inset-right, 0px)); bottom:max(16px, env(safe-area-inset-bottom, 0px)); z-index:70; display:flex; flex-direction:column; gap:8px; width:min(380px, calc(100vw - 32px)); pointer-events:none; }
+  .toast { pointer-events:auto; display:flex; align-items:flex-start; gap:10px; padding:11px 14px; border:1px solid var(--line); border-left:4px solid var(--acc); border-radius:12px; background:var(--panel); box-shadow:0 12px 34px rgba(0,0,0,.22); font-size:13.5px; line-height:1.45; }
+  .toast.warn { border-left-color:var(--warn); } .toast.bad { border-left-color:var(--bad); } .toast.ok { border-left-color:var(--ok); }
+  .toast span { flex:1; min-width:0; overflow-wrap:anywhere; } .toast a { color:var(--acc); cursor:pointer; white-space:nowrap; }
+  .toast button { padding:0 6px; border:0; background:none; box-shadow:none; color:var(--dim); font-size:14px; cursor:pointer; }
+  .stopped-card { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .stopped-card .grow { flex:1; min-width:200px; display:flex; flex-direction:column; gap:3px; }
+  .stopped-card b { font-size:15px; } .stopped-card .pm { font-size:13px; color:var(--dim); } .stopped-card .pe { font-size:13px; color:var(--bad); overflow-wrap:anywhere; }
+  @media (max-width: 900px) { .power { margin-top:8px; padding:12px; } .power-panel { left:16px !important; right:16px; width:auto; } }
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+<aside class="side">
+  <div class="brand"><b>Sidekick</b></div>
+  <button class="menu-btn" id="menu-btn" type="button" aria-label="Modules" aria-expanded="false" aria-controls="side-nav"><i class="pd" id="menu-power-dot" title="Bobby's service"></i><span id="menu-current">Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+<nav id="side-nav">
+      <button data-tab="live" class="active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11 7.4L4 21l1.6-5A8 8 0 1 1 21 12z"/></svg><span>Live</span><i class="dot" id="dot-live"></i></button>
+      <button data-tab="voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4"/></svg><span>Voice</span><i class="dot" id="dot-voice"></i></button>
+      <button data-tab="body"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="11" rx="3"/><path d="M12 9V5M9 5h6M9 14h.01M15 14h.01M2 13v4M22 13v4"/></svg><span>Body</span><i class="dot" id="dot-body"></i></button>
+      <button data-tab="agent"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3l1.6 4.4L17 9l-4.4 1.6L11 15l-1.6-4.4L5 9l4.4-1.6z"/><path d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"/></svg><span>Agent</span><i class="dot" id="dot-agent"></i></button>
+      <button data-tab="automation"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2.5h6"/></svg><span>Automation</span><i class="dot" id="dot-automation"></i></button>
+      <button data-tab="contact"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Contact</span><i class="dot" id="dot-contact"></i></button>
+      <button data-tab="channel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg><span>Channel</span><i class="dot" id="dot-channel"></i></button>
+      <button data-tab="record"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/></svg><span>Record</span><i class="dot" id="dot-record"></i></button>
+      <button data-tab="extension"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V6a2 2 0 0 1 2-2h4v3a2 2 0 0 0 4 0V4h4a2 2 0 0 1 2 2v4h-3a2 2 0 0 0 0 4h3v4a2 2 0 0 1-2 2h-4v-3a2 2 0 0 0-4 0v3H6a2 2 0 0 1-2-2v-4h3a2 2 0 0 0 0-4H4z"/></svg><span>Extension</span><i class="dot" id="dot-extension"></i></button>
+      <button data-tab="system"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>System</span><i class="dot" id="dot-system"></i></button>
+    <button class="power" id="power-btn" type="button" aria-haspopup="true" aria-expanded="false" title="Start or stop Bobby"><i class="pd" id="power-dot"></i><span class="pl"><b id="power-label">…</b><small id="power-sub"></small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/></svg></button>
+  </nav>
+</aside>
+<div class="menu-backdrop" id="menu-backdrop"></div>
+<main>
+  <section id="tab-live" class="active live-board">
+    <div class="card stopped-card" id="live-stopped" hidden><span class="svc-dot" id="live-stopped-dot"></span><div class="grow"><b>Bobby is stopped</b><span class="pm" id="live-stopped-sub"></span><span class="pe" id="live-stopped-err" hidden></span></div><button class="primary" data-service-start>Start</button></div>
+    <div class="live-top">
+    <div class="slot" data-slot="camera"><div class="card cam" id="cam-card"><h3>Camera <small id="cam-info">MJPEG · ≤ 10 fps</small></h3><div class="cam-wrap"><img id="live-cam" alt="camera stream"><div class="cam-faces" id="cam-faces"></div></div></div></div>
+    <div class="slot" data-slot="body3d"><div class="card" id="robot3d-card"><h3>Body <small id="pose-info"></small></h3><div id="robot3d" class="robot3d"><span class="hint">drag to orbit · wheel to zoom</span></div></div></div>
+      <div class="card" id="now-card">
+        <h3><i class="st" id="now-st"></i><a data-go="voice">Now</a><small id="now-sub">engagement · attention</small></h3>
+        <div class="now-line" id="now-line"><span class="state off">off</span></div>
+        <div class="bar-row"><span class="lbl">mic</span><div class="bar"><i id="bar-mic-live"></i><b id="peak-mic-live"></b></div><span class="db" id="db-mic-live">–</span></div>
+        <div class="bar-row"><span class="lbl">speaker</span><div class="bar"><i id="bar-spk-live"></i><b id="peak-spk-live"></b></div><span class="db" id="db-spk-live">–</span></div>
+        <div class="status-kv" id="live-status"></div>
+        <div class="now-decisions" id="now-decisions"></div>
+      </div>
+    </div>
+    <div class="live-lower">
+      <div class="live-left">
+        <div class="card chat live-chat">
+          <h3>Dialogue <small>every channel, as it happens · scroll up for earlier turns</small></h3>
+          <div class="scroll" id="chat-scroll"><div class="inner"><div class="tl-rows" id="tl-rows"></div><div class="tl-live" id="tl-live"></div></div></div>
+          <button class="to-latest" id="chat-latest" hidden>latest ↓</button>
+        </div>
+        <div class="card" id="activity-card">
+          <h3>Activity <small>what every module did, newest first</small></h3>
+          <div class="chips" id="activity-chips"></div>
+          <div class="activity" id="activity"><span class="dim">waiting for the live feed</span></div>
+        </div>
+      </div>
+      <div class="live-right">
+        <div class="card" id="turn-card"><h3><i class="st" id="turn-st"></i><a data-go="voice">Turn</a><small id="turn-sub">the turn in progress, else the last</small></h3><div id="turn-body"><span class="dim">no turn yet</span></div></div>
+        <div class="mod-cols">
+          <div class="mod-col">
+            <div class="card mod" id="mod-agent"><h3><i class="st"></i><a data-go="agent">Agent</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-services"><h3><i class="st"></i><a data-go="agent/settings">Services</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-memory"><h3><i class="st"></i><a data-go="agent/memory">Memory</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-automation"><h3><i class="st"></i><a data-go="automation">Automation</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-channel"><h3><i class="st"></i><a data-go="channel">Channel</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+          </div>
+          <div class="mod-col">
+            <div class="card mod" id="mod-system"><h3><i class="st"></i><a data-go="system">System</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-body"><h3><i class="st"></i><a data-go="body">Body</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-perception"><h3><i class="st"></i><a data-go="channel/events">Perception</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-contact"><h3><i class="st"></i><a data-go="contact">Contact</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-record"><h3><i class="st"></i><a data-go="record">Record</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+            <div class="card mod" id="mod-extension"><h3><i class="st"></i><a data-go="extension">Extension</a><small></small></h3><div class="kv"><div class="dim">–</div><div class="dim">waiting for the live feed</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="content">
+  <section id="tab-body">
+    <div class="robot-grid">
+    <div class="robot-inner">
+      <div class="slot" data-slot="body3d"></div>
+      <div class="card"><h3>Telemetry <small>body · 10 Hz</small></h3><div class="kv rb-kv" id="live-telemetry"><div class="dim">–</div><div>waiting for the live feed</div></div></div>
+      <div class="card">
+        <h3>Controller <small><span id="rb-hold" class="pill free">released</span></small></h3>
+        <div class="row" style="margin-top:0"><button class="primary" id="rb-take" data-needs-service>Take control</button><button id="rb-release" disabled>Release</button><span id="rb-control-result" class="dim"></span></div>
+        <p class="dim" style="margin:4px 0 0;font-size:12.5px">While held, attention and expressions from the agent are dropped and the voice front end is parked; Release restores the idle posture.</p>
+        <div class="sliders off" id="rb-sliders">
+          <label>head yaw<input type="range" data-pose="yaw" min="-60" max="60" value="0" step="1"><output>0°</output></label>
+          <label>head pitch<input type="range" data-pose="pitch" min="-35" max="35" value="0" step="1"><output>0°</output></label>
+          <label>head roll<input type="range" data-pose="roll" min="-30" max="30" value="0" step="1"><output>0°</output></label>
+          <label>head height<input type="range" data-pose="z" min="-15" max="15" value="0" step="1"><output>0 mm</output></label>
+          <label>body yaw<input type="range" data-pose="body_yaw" min="-150" max="150" value="0" step="1"><output>0°</output></label>
+          <label>antenna right<input type="range" data-pose="ant_r" min="-150" max="150" value="-10" step="1"><output>-10°</output></label>
+          <label>antenna left<input type="range" data-pose="ant_l" min="-150" max="150" value="10" step="1"><output>10°</output></label>
+        </div>
+        <div class="row" style="margin:4px 0"><button id="rb-centre" disabled>Centre</button><button data-gesture="nod" disabled>Nod</button><button data-gesture="shake" disabled>Shake</button><button data-gesture="tilt" disabled>Tilt</button><button data-gesture="look_up" disabled>Look up</button><button data-gesture="perk" disabled>Perk</button></div>
+        <div class="row" style="margin:4px 0"><span id="rb-motion-result" class="dim"></span></div>
+      </div>
+      <div class="card" id="expr-card">
+        <h3>Expressions <small>Bobby's own library · played on top of the gaze, no sound</small></h3>
+        <div class="row" style="margin-top:0"><label class="expr-intensity">intensity <input type="range" id="expr-intensity" min="0.3" max="1.5" step="0.1" value="1"><output id="expr-intensity-out">1.0</output></label><button id="expr-think" title="the thinking state as in a conversation: look away, then think long, then back">Think 6 s</button><span id="expr-result" class="dim"></span></div>
+        <div id="expr-groups" class="expr-groups"></div>
+      </div>
+      <div class="card">
+        <h3>Microphone <small id="rb-mic-level"></small></h3>
+        <div class="row" style="margin-top:0"><button class="primary" id="rb-mic" data-needs-service>Record</button><select id="rb-mic-s"><option value="2">2 s</option><option value="3" selected>3 s</option><option value="5">5 s</option></select><span id="rb-mic-result" class="dim"></span></div>
+        <audio id="rb-mic-audio" controls preload="none" style="width:100%;display:none;margin-top:6px"></audio>
+      </div>
+      <div class="card">
+        <h3>Speaker <small id="rb-spk-level"></small></h3>
+        <div class="row" style="margin-top:0"><button data-spk="tone">Tone 440 Hz</button><button data-spk="sweep">Sweep 0.1–6 kHz</button><button data-spk="mic">Play last capture</button><span id="rb-spk-result" class="dim"></span></div>
+        <div class="row">
+          <input id="say-text" style="flex:1;min-width:200px" placeholder="你好，我係 Bobby" value="你好，我係 Bobby，有咩可以幫到你？">
+          <select id="say-expr"><option value="">no expression</option></select>
+          <button class="primary" id="say-btn" data-needs-service>Say</button>
+          <span id="say-result" class="dim"></span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Camera tests <small id="rb-cam-result"></small></h3>
+        <div class="row" style="margin-top:0"><button id="rb-snap" data-needs-service>Snapshot</button><button id="rb-video" data-needs-service>Record video</button><select id="rb-video-s"><option value="3">3 s</option><option value="5" selected>5 s</option><option value="10">10 s</option></select></div>
+        <div id="rb-media" class="rb-media"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="slot" data-slot="camera"></div>
+      <div class="card"><h3>Motion <small>applied at once · watch the 3D body and the camera</small></h3><div data-params="robot.motion"></div></div>
+      <div class="card"><h3>Attention <small>how the head moves on its own</small></h3><div data-params="robot.attention"></div></div>
+      <div class="card"><h3>Sway detail <small>amplitudes, oscillators, loudness window</small></h3><div data-params="robot.sway" data-fold="all 28 knobs of body.sway"></div></div>
+      <div class="card"><h3>Daemon &amp; connection <small>applies at the next start</small></h3><div data-params="robot.daemon"></div></div>
+    </div>
+    </div>
+  </section>
+
+  <section id="tab-voice">
+    <div class="viewbar" role="tablist" aria-label="Voice views">
+      <button data-view="decisions" role="tab">Decisions</button>
+      <button data-view="hear" role="tab">Hear</button>
+      <button data-view="speak" role="tab">Speak</button>
+      <button data-view="traces" role="tab">Traces</button>
+    </div>
+    <div class="view" data-view="decisions">
+      <div class="card">
+        <h3>Hearing now <small>dBFS · peak hold · the engagement machine</small></h3>
+        <div class="bar-row"><span class="lbl">mic</span><div class="bar"><i id="bar-mic"></i><b id="peak-mic"></b></div><span class="db" id="db-mic">–</span></div>
+        <div class="bar-row"><span class="lbl">speaker</span><div class="bar"><i id="bar-spk"></i><b id="peak-spk"></b></div><span class="db" id="db-spk">–</span></div>
+        <div class="foot-note" id="listen-state"></div>
+      </div>
+      <div class="card">
+        <h3 class="with-action">Decisions <small>newest first; clips kept 7 days</small><button class="link" id="decisions-more">show more</button></h3>
+      <div class="row"><select id="enroll-contact"></select><button class="primary" id="enroll-voice">Enroll selected clips as this voice</button><span id="enroll-result" class="dim"></span></div>
+      <table><thead><tr><th></th><th>time</th><th>state</th><th>event</th><th>decision</th><th>reason</th><th>name</th><th>DoA</th><th>dur</th><th>text / reply</th><th>latency</th><th>clip</th></tr></thead>
+      <tbody id="decisions"></tbody></table>
+      </div>
+    </div>
+    <div class="view" data-view="hear">
+      <div class="two-col">
+        <div class="col">
+          <div data-services="asr.local asr.primary asr.kws vad.primary"></div>
+          <div class="card"><h3>Thresholds</h3><div data-params="voice.thresholds"></div></div>
+        </div>
+        <div class="col">
+  <div class="card"><h3>Wake name <small>Bobby — the aliases SenseVoice may hear, the keyword-spotter lines</small></h3><div data-params="voice.wake"></div></div>
+          <div class="card"><h3>Triggers &amp; turns</h3><div data-params="voice.triggers"></div></div>
+          <div class="card"><h3>Words &amp; the TV</h3><div data-params="voice.words"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="view" data-view="speak">
+      <div class="svc-row" data-services="tts.primary tts.fallback"></div>
+      <div class="card"><h3>Language <small>drives the ASR hint, the TTS voice and the reply register</small></h3><div data-params="voice.language"></div></div>
+      <div class="card"><h3>Pacing <small>applied at once · the pause after a full stop, a question, an exclamation</small></h3><div data-params="voice.pacing"></div></div>
+    </div>
+    <div class="view" data-view="traces">
+      <div class="card"><h3 class="with-action">ASR trace <small>newest first · local vs shadow</small><button class="link" data-more>show more</button></h3><table class="nowrap-meta wide"><thead><tr><th>time</th><th>slot</th><th>model</th><th>ms</th><th>text</th></tr></thead><tbody data-trace="asr" data-limit="12"></tbody></table></div>
+      <div class="card"><h3 class="with-action">TTS trace <small>newest first</small><button class="link" data-more>show more</button></h3><table class="nowrap-meta wide"><thead><tr><th>time</th><th>slot</th><th>model · voice</th><th>ms</th><th>text</th></tr></thead><tbody data-trace="tts" data-limit="12"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="tab-agent">
+    <div class="viewbar" role="tablist" aria-label="Agent views">
+      <button data-view="swarm" role="tab">Swarm <small data-count="agents"></small></button>
+      <button data-view="tools" role="tab">Tools <small data-count="tools"></small></button>
+      <button data-view="mcp" role="tab">MCP <small data-count="mcp"></small></button>
+      <button data-view="skills" role="tab">Skills <small data-count="skills"></small></button>
+      <button data-view="memory" role="tab">Memory <small data-count="memory"></small></button>
+      <button data-view="timeline" role="tab">Timeline</button>
+      <button data-view="test" role="tab">Test</button>
+      <button data-view="settings" role="tab">Settings</button>
+    </div>
+    <div class="view" data-view="swarm">
+      <div class="card board">
+        <div class="board-head"><h3>Agents <small id="agents-count"></small></h3><small class="grow">the main agent answers every turn and hands work to the experts after it with <code>delegate</code> — click one to read or change it</small><button id="subagent-new">+ New subagent</button></div>
+        <div class="items" id="agents-board"></div>
+        <div class="foot-note" id="agent-state"></div>
+      </div>
+      <div class="card"><h3 class="with-action">LLM calls <small>newest first</small><button class="link" data-more>show more</button></h3>
+        <table class="nowrap-meta wide"><thead><tr><th>time</th><th>slot</th><th>model</th><th>ms</th><th>tokens</th><th>last turn → answer</th></tr></thead><tbody data-trace="llm" data-limit="8" data-clamp></tbody></table>
+      </div>
+    </div>
+    <div class="view" data-view="tools">
+      <div class="card board">
+        <div class="board-head"><h3>Tools <small id="tools-count"></small></h3><small class="grow">what the agents can call — click a card for its parameters and who may use it</small><input type="search" id="tools-filter" placeholder="filter…" aria-label="filter tools"></div>
+        <div class="chips" id="tools-origins" role="group" aria-label="where the tools come from"></div>
+        <div class="items" id="tools-board"></div>
+      </div>
+    </div>
+    <div class="view" data-view="mcp">
+      <div class="card board">
+        <div class="board-head"><h3>MCP servers <small id="mcp-count"></small></h3><small class="grow">other programs that lend Bobby their tools — a stdio command or an HTTP URL; their tools appear under Tools as <code>mcp.&lt;server&gt;.&lt;tool&gt;</code></small><button id="mcp-new">+ Add a server</button></div>
+        <div class="items" id="mcp-board"></div>
+      </div>
+    </div>
+    <div class="view" data-view="skills">
+      <div class="card board">
+        <div class="board-head"><h3>Skills <small id="skills-count"></small></h3><small class="grow">Markdown instructions the agent reads with <code>skill_read</code> — click one to read or edit it</small><button id="skill-new">+ New skill</button></div>
+        <div class="items" id="skills-board"></div>
+      </div>
+    </div>
+    <div class="view" data-view="memory">
+      <div class="two-col">
+        <div class="col">
+          <div class="card">
+            <h3>Remember <small>add a fact by hand — Bobby also learns from each conversation after it ends</small></h3>
+            <div class="row" style="margin:0">
+              <select id="mem-scope"><option value="household">household</option></select>
+              <select id="mem-category" aria-label="category"></select>
+              <label class="toggle"><input type="checkbox" id="mem-private"> private</label>
+            </div>
+            <div class="row" style="margin:8px 0 0">
+              <input id="mem-text" style="flex:1;min-width:220px" placeholder="e.g. 廚房燈掣喺門口左邊">
+              <button class="primary" id="mem-add">Remember</button>
+              <span id="mem-result" class="dim"></span>
+            </div>
+            <div class="row" style="margin:10px 0 0"><input id="mem-search" type="search" placeholder="filter facts and episodes…" style="flex:1;min-width:200px"><small id="mem-count"></small></div>
+          </div>
+          <div class="col" id="mem-profiles"></div>
+        </div>
+        <div class="col">
+          <div class="card">
+            <h3 class="with-action">Writer <small id="mem-writer-sub">writes each conversation after it ends</small><button class="link" id="mem-write">write now</button></h3>
+            <div class="kv" id="mem-writer"></div>
+          </div>
+          <div class="card">
+            <h3>Episodes <small id="mem-episodes-count">one per conversation · click for the conversation</small></h3>
+            <div class="episodes" id="mem-episodes"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="view" data-view="timeline">
+      <div class="card">
+        <h3>Timeline <small>every channel, newest first; internal rows are tool steps and notes</small></h3>
+        <table class="nowrap-first"><thead><tr><th>time</th><th>channel</th><th>speaker</th><th>role</th><th>vis</th><th>content</th><th>delivered</th></tr></thead>
+        <tbody id="timeline"></tbody></table>
+      </div>
+    </div>
+    <div class="view" data-view="test">
+      <div class="card chat test-chat">
+        <h3 class="with-action">Try the agent <small>a real turn on the main agent, typed as one of the household</small><button class="link" id="test-clear">clear</button></h3>
+        <div class="scroll" id="test-scroll"><div class="inner" id="test-log"></div></div>
+        <div class="composer">
+          <div class="box">
+            <select id="test-speaker" aria-label="speak as"><option value="owner">owner</option></select>
+            <textarea id="test-text" rows="1" placeholder="Type a turn… (Enter sends, Shift+Enter starts a new line)"></textarea>
+            <button class="primary" id="test-send" data-needs-service title="Send"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="view" data-view="settings">
+      <div class="svc-row" data-services="llm.fast llm.smart"></div>
+    </div>
+  </section>
+
+  <section id="tab-automation">
+    <div class="two-col">
+      <div class="col">
+        <div class="card"><h3>Status</h3><div class="kv" id="automation-state"></div></div>
+        <div class="card"><h3>Scheduler</h3><div data-params="automations.scheduler"></div></div>
+      </div>
+      <div class="col">
+        <div class="card"><h3>Initiative <small>when Bobby may speak first</small></h3><div data-params="automations.initiative"></div></div>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+    <div class="card">
+      <h3>Jobs <small>(reminders, recurring tasks, event jobs, the heartbeat — all run on the main agent)</small></h3>
+      <div class="row">
+        <input id="job-name" placeholder="name" style="width:140px">
+        <input id="job-prompt" placeholder="what to say or do" style="flex:1;min-width:200px">
+        <input id="job-cron" placeholder="cron (0 8 * * *)" style="width:150px">
+        <input id="job-when" placeholder="when (HH:MM / ISO)" style="width:160px">
+        <select id="job-delivery"><option>auto</option><option>in_person</option><option>remote</option><option>both</option></select>
+        <button class="primary" id="job-add">Add</button>
+      </div>
+      <table><thead><tr><th>name</th><th>trigger</th><th>next</th><th>last</th><th>runs</th><th>delivery</th><th>state</th><th>prompt</th><th></th></tr></thead>
+      <tbody id="jobs"></tbody></table>
+    </div>
+    </div>
+  </section>
+
+  <section id="tab-channel">
+    <div class="viewbar" role="tablist" aria-label="Channel views">
+      <button data-view="channels" role="tab">Channels</button>
+      <button data-view="events" role="tab">Events</button>
+    </div>
+    <div class="view" data-view="channels">
+      <div class="grid">
+  <div class="card">
+        <h3>Telegram</h3>
+        <div class="kv" id="telegram-state"></div>
+        <div class="row"><input type="password" id="tg-token" placeholder="bot token (from @BotFather)" style="min-width:240px;flex:1"><button id="tg-token-save">Save token</button></div>
+        <div class="row"><button class="primary" id="telegram-pair">New pairing code</button><span id="telegram-code" class="dim"></span></div>
+        <small>A new token runs from Bobby's next start (the power control: Restart); then send <code>/pair &lt;code&gt;</code> to the bot from your phone.</small>
+      </div>
+  <div class="card">
+        <h3>WeChat (iLink)</h3>
+        <div class="kv" id="wechat-state"></div>
+        <div class="row"><button class="primary" id="wx-login">Log in with WeChat</button><button id="wx-cancel" hidden>Cancel</button><span id="wx-status" class="dim"></span></div>
+        <div class="row" id="wx-code-row" hidden><input id="wx-code" inputmode="numeric" placeholder="digits shown in WeChat" style="max-width:200px"><button id="wx-code-send">Send</button></div>
+        <img id="wx-qr" alt="WeChat login QR code" width="220" height="220" style="display:block;border-radius:10px;background:#fff;padding:6px" hidden>
+        <small>Scan the code with WeChat on your phone and confirm there; the bot token is saved and WeChat runs from Bobby's next start.</small>
+      </div>
+  <div class="card">
+        <h3>Presence</h3>
+        <div class="kv" id="presence"></div>
+      </div>
+      </div>
+    </div>
+    <div class="view" data-view="events">
+      <div class="card">
+        <h3>Events <small>perception bus, newest first</small></h3>
+        <table class="nowrap-first"><thead><tr><th>time</th><th>type</th><th>severity</th><th>data</th></tr></thead><tbody id="events"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-contact">
+    <div class="card">
+      <h3>Household <small id="contacts-last"></small></h3>
+      <div class="row" style="margin:0 0 8px"><button class="primary" id="c-new">New member</button><small>Each member is enrolled once — details, then three sentences for the voice, then a few camera frames for the face. Guests need no entry.</small></div>
+      <table><thead><tr><th>name</th><th>aliases</th><th>language</th><th>owner</th><th>remote</th><th>voice</th><th>face</th><th></th></tr></thead><tbody id="contacts"></tbody></table>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>People seen <small>heard but not named yet — Bobby befriends them itself when it has heard them enough; or give a name here</small></h3>
+      <table><thead><tr><th>who</th><th>heard</th><th>face frames</th><th>last seen</th><th>status</th><th></th></tr></thead><tbody id="people"></tbody></table>
+    </div>
+    <div class="card enroll" id="enroll-panel" style="display:none;margin-top:12px">
+      <h3>Enrollment <small id="enroll-title"></small></h3>
+      <div class="row steps" id="enroll-steps" style="margin:0 0 10px"><button data-estep="details">1 Details</button><button data-estep="voice">2 Voice</button><button data-estep="face">3 Face</button></div>
+      <div id="enroll-body"></div>
+    </div>
+    <div class="two-col" style="margin-top:14px">
+      <div class="card"><h3>Recognition <small>applied at once</small></h3><div data-params="contacts.recognition"></div></div>
+      <div class="card"><h3>TV zone <small>faces inside are ignored for gaze and presence · the sound sector is on Voice</small></h3>
+        <p class="dim" style="margin:0 0 8px;font-size:12.5px">Drag a rectangle over the TV on the camera frame, then Save.</p>
+        <div class="tv-zone"><img id="tv-cam" alt="camera frame"><div class="rect" id="tv-rect"></div></div>
+        <div class="row"><button id="tv-refresh">Refresh frame</button><button id="tv-clear">Clear</button><button class="primary" id="tv-save">Save zone</button><span id="tv-result" class="dim"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-extension">
+    <div class="row"><input id="ext-source" placeholder="install from a directory path or git URL" style="flex:1;min-width:260px"><button class="primary" id="ext-install">Install</button><span id="ext-result" class="dim"></span></div>
+    <div id="extensions" class="grid"></div>
+  </section>
+
+  <section id="tab-record">
+    <div class="card">
+      <div class="row" style="margin:0 0 8px">
+        <select id="rp-day"></select>
+        <span id="rp-summary" class="dim"></span>
+        <span class="spacer" style="flex:1"></span>
+        <label class="toggle"><input type="checkbox" id="rp-mute-mic"> mute mic</label>
+        <label class="toggle"><input type="checkbox" id="rp-mute-spk"> mute speaker</label>
+        <label class="toggle"><input type="checkbox" id="rp-auto" checked> auto-advance</label>
+        <button id="rp-refresh">Refresh</button>
+      </div>
+      <div class="chunk-strip" id="rp-strip" title="one cell per 5 minutes; click to open"></div>
+      <div class="strip-hours"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+    </div>
+    <div class="replay-grid">
+      <div class="card rp-video"><h3 id="rp-title">Recording <small id="rp-info"></small></h3>
+        <video id="rp-video" controls preload="metadata" playsinline></video>
+        <audio id="rp-mic" preload="auto"></audio>
+        <audio id="rp-spk" preload="auto"></audio>
+        <div class="row" style="margin:6px 0 0"><span id="rp-clock" class="dim">–</span><span class="spacer" style="flex:1"></span><button id="rp-prev">◀ prev</button><button id="rp-next">next ▶</button></div>
+      </div>
+      <div class="card rp-3d"><h3>Body <small id="rp-pose"></small></h3><div id="rp-robot3d" class="robot3d"></div><div class="live-status" id="rp-status"></div></div>
+      <div class="card live-wide rp-tracks">
+        <canvas id="rp-canvas" title="click to seek"></canvas>
+        <div class="rp-legend"><span><i style="background:#3fb950"></i>mic</span><span><i style="background:#58a6ff"></i>speaker</span><span><i style="background:#2f6f3a"></i>engaged</span><span><i style="background:#8a5a12"></i>speaking</span><span><i style="background:#d29922"></i>heard</span><span><i style="background:#58a6ff"></i>said</span><span><i style="background:#8b93a7"></i>tool / internal</span><span><i style="background:#f85149"></i>rejected</span><span><i style="background:#b083f0"></i>event</span></div>
+        <div class="events" id="rp-list"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Recording <small>the 24 h ring · applies at the next start</small></h3><div data-params="replay.recording"></div></div>
+  </section>
+
+  <section id="tab-system">
+    <div class="viewbar" role="tablist" aria-label="System views">
+      <button data-view="readiness" role="tab">Readiness</button>
+      <button data-view="logs" role="tab">Logs</button>
+      <button data-view="config" role="tab">Config</button>
+    </div>
+    <div class="view" data-view="readiness">
+  <div class="card" id="service-card"><h3>Service <small id="service-when"></small></h3>
+        <div class="kv" id="service-kv"></div>
+        <div class="row"><span class="svc-dot" id="service-dot"></span><span id="service-line" style="font-weight:600"></span><span class="spacer" style="flex:1"></span><button class="primary" data-service-start>Start</button><button data-service-restart>Restart</button><button data-service-stop>Stop</button></div>
+        <small class="dim">Stopping turns the robot off (the daemon stops, the robot sleeps) and frees what Bobby holds; the dashboard and every data page stay. A start checks the configuration and brings each module up with its own checks.</small>
+      </div>
+  <div class="card" id="rail-system-card"><h3>Status <small id="rail-system-when"></small></h3>
+        <div class="ready"><span class="verdict" id="rail-verdict">checking…</span><button id="rail-check" title="local checks, one real call per slot, a short tone">Check</button></div>
+        <div class="ready-rows" id="rail-ready-rows"></div>
+        <div class="kv" id="rail-system"></div>
+      </div>
+  <div class="card">
+      <h3>Readiness <small id="sys-ready-when"></small></h3>
+      <div class="row" style="margin-top:0"><span id="sys-verdict" style="font-weight:600"></span><span class="spacer" style="flex:1"></span><button id="sys-check-local">Local checks</button><button class="primary" id="sys-check">Check everything</button></div>
+      <p class="dim" style="margin:0 0 8px;font-size:12.5px">Local checks cost nothing and refresh every few seconds. "Check everything" also makes one real call per service slot and plays a short tone through the speaker while the microphone listens (the voice front end is parked meanwhile).</p>
+      <table><thead><tr><th>layer</th><th>check</th><th>status</th><th>detail</th><th>ms</th><th>fix on</th></tr></thead><tbody id="sys-items"></tbody></table>
+    </div>
+    </div>
+    <div class="view" data-view="logs">
+  <div class="card"><h3>Logs <small id="logs-what">last 200 lines of .derived_data/logs/sidekick.log</small> <select id="logs-source" style="margin-left:auto;font-size:12px"><option value="sidekick">sidekick</option><option value="daemon">robot daemon</option></select><button id="logs-refresh" style="padding:2px 10px;font-size:12px">Refresh</button></h3><pre id="logs" class="tall"></pre></div>
+    </div>
+    <div class="view" data-view="config">
+      <div class="grid">
+  <div class="card"><h3>Dashboard <small>applies when sidekick itself restarts</small></h3><div data-params="system.dashboard"></div></div>
+  <div class="card"><h3>Backup</h3><div class="row" style="margin-top:0"><button class="primary" id="sys-backup">Create backup</button><span id="sys-backup-result" class="dim"></span></div><small>A tar.gz of the home without models, cache, logs and recordings, written under <code>cache/backups/</code>; restore with <code>sidekick backup restore &lt;path&gt;</code>.</small></div>
+      </div>
+  <div class="card"><h3>Config (masked) <small>.derived_data/config.json</small></h3><pre id="config-json"></pre></div>
+    </div>
+  </section>
+  </div>
+</main>
+</div>
+<dialog id="sheet" class="sheet" aria-labelledby="sheet-title">
+  <div class="sheet-head">
+    <div class="grow"><h2 id="sheet-title"></h2><div class="sub" id="sheet-sub"></div><div class="tags" id="sheet-tags"></div></div>
+    <button class="x" id="sheet-close" aria-label="close">✕</button>
+  </div>
+  <div class="sheet-body" id="sheet-body"></div>
+  <div class="sheet-foot" id="sheet-foot"></div>
+</dialog>
+<div class="power-panel" id="power-panel" role="dialog" aria-label="Bobby's service" hidden></div>
+<dialog id="start-sheet" class="sheet start-sheet" aria-labelledby="start-title">
+  <div class="sheet-head">
+    <div class="grow"><h2 id="start-title">Starting Bobby</h2><div class="sub" id="start-sub"></div></div>
+  </div>
+  <div class="sheet-body"><div class="start-error" id="start-error" hidden></div><div class="steps" id="start-steps"></div></div>
+  <div class="sheet-foot"><button class="primary" id="start-ok" disabled>OK</button></div>
+</dialog>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="/dashboard_app.js"></script>
+<script src="/dashboard_service.js"></script>
+<script src="/dashboard_live.js"></script>
+<script src="/dashboard_robot.js"></script>
+<script src="/dashboard_replay.js"></script>
+<script type="module" src="/dashboard_robot3d.js"></script>
+</body>
+</html>
