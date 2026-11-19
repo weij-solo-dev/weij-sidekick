@@ -39,6 +39,9 @@ class ScriptedLLM:
             return ("tools", [("remember", {"text": text.replace("記住", "").strip()})])
         if "睇下" in text and "slow_look" in tool_names:
             return ("tools", [("slow_look", {})])
+        if "直接刪除" in text and "skill_delete" in tool_names:
+            # a model that writes the confirmation itself (block #94)
+            return ("tools", [("skill_delete", {"name": "quiet", "confirmed": True})])
         if "刪除" in text and "skill_delete" in tool_names:
             return ("tools", [("skill_delete", {"name": "quiet"})])
         if "提我" in text and "schedule" in tool_names:
@@ -288,6 +291,18 @@ async def test_confirm_gate_blocks_then_executes_on_yes(session):
     await collect(s, "刪除 quiet 技能")
     await collect(s, "唔好")
     assert s.skills.get("quiet") is not None and s.gate.pending("voice:dad") is None
+
+
+async def test_confirm_gate_takes_no_confirmation_from_the_model(session):
+    s, *_ = session
+    from sidekick.agent import Skill
+
+    s.skills.upsert(Skill("quiet", "q", "body"))
+    await collect(s, "直接刪除 quiet 技能")  # the model calls it with `confirmed: true`
+    assert s.skills.get("quiet") is not None  # still parked: only the speaker confirms
+    assert s.gate.pending("voice:dad") is not None
+    await collect(s, "好呀")
+    assert s.skills.get("quiet") is None
 
 
 async def test_delegate_sync_and_async(session):

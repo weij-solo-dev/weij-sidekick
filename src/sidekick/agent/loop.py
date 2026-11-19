@@ -229,7 +229,9 @@ class ReActLoop:
         arguments = _parse_args(call.arguments)
         if arguments is None:
             return ToolResult.error("arguments must be a JSON object")
-        if tool.confirm and not (ctx.confirmed or arguments.get("confirmed") is True):
+        if tool.confirm and not ctx.confirmed:
+            # Only the speaker confirms (invariant 13): an argument the model writes itself
+            # (`confirmed: true`) is not a yes (block #94).
             return self.gate.request(ctx, tool, arguments)
         started = time.monotonic()
         try:
