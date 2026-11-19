@@ -102,6 +102,13 @@ Todo · Progress. History blocks are never rewritten; corrections are appended a
   before the silence ran out holds the session (13 sessions had closed under people
   mid-sentence; 12 of them now kept), and a bare call gets a spoken 「喺度！咩事呀？」 at once
   (pre-synthesized, no model call).
+- **Done 2026-11-20 (blocks #94–#95), in review:** the robot and its wake name are **Banana**
+  (name, aliases and keyword lines fixed by the code; a home under the old name is migrated on
+  load; aliases matched as written, the name itself loosely and word by word); **Mandarin** is
+  the default language (voice, cloud ASR, SenseVoice `zh`, replies; a voice follows the
+  household language, the robot's own voice print follows the voice); the confirm gate takes
+  no confirmation from the model; merged to `main`. Measured on synthesized voices only.
+  **Owner:** the first real "Banana" on the robot; decide how 思源 is spoken to.
 - **Resolved 2026-10-26:** hardware (Lite on this Mac), provider (MiniMax, streaming, per-slot
   vendor binding incl. `vad`), robot name Bobby (fixed), channels (Telegram + personal WeChat via
   iLink), integrations as extensions, single interaction mode, guests allowed with TV-safe gating,
@@ -117,6 +124,137 @@ Todo · Progress. History blocks are never rewritten; corrections are appended a
   robot plus one cable. Otherwise: a new Mac mini M6 at the 国补 price (≈ ¥4,300–4,929, zero
   porting) or an N150 mini PC (≈ ¥1,100–1,600, one to three days of Linux work), each in a
   20–22 cm plinth. Chinese report: https://claude.ai/artifact/QMYsxdKdirGgCRrc1Rcfio
+
+## [2026-11-20 #95] Progress: Banana, Mandarin by default, the confirm gate; merged to `main` (block #94)
+
+- **The name.**
+  - `config`: `ROBOT_NAME` / `ROBOT_ALIASES` / `ROBOT_KEYWORDS` are the defaults of `robot`. A
+    home whose config carries another name loses its name, aliases and keyword lines on load
+    and takes these; a home already on the name keeps the aliases its owner tuned.
+  - Keyword spotter: `B AH0 N AE1 N AH0` and `B AH0 N AA1 N AH0`, score 2.0 / threshold 0.2
+    (`provider_local.json`).
+  - Aliases: `banana`, `bananna`, `ananna`, `banaa`, `baana`, `bnaa`, 把娜娜, 巴娜娜, 芭娜娜,
+    爸娜娜, 吧娜娜.
+  - *Changed while building — the matcher is stricter than block #94 planned.* Aliases are
+    matched as written; only the name itself is matched loosely, and word by word.
+    - With every alias matched loosely, "ananna" took "NANNA is not coming" and "banaa" took
+      "Panama", "cabana" and "nana".
+    - With windows sliding over the text without its spaces, "a banner and a" and "cabana
+      near" held a "banana".
+    - What still passes: an English word one letter away ("bandana", a garbled "banner").
+    - A loosely matched name takes the Latin word it sits in on the original text, so an
+      English sentence keeps its spaces ("VANANA what's the weather" → "what's the weather").
+  - The persona ("You are Banana … your name is the English word, never the fruit: that is
+    香蕉"), every prompt, skill and dashboard string; comments and module headers.
+- **The wake path, measured with the defaults** (SenseVoice text + the matcher, the spotter,
+  either): the 55 utterances with the name — text 52, spotter 40, either 55; the 53 short ones
+  without — none; 12.2 min of running speech cut by the VAD into 37 segments — five wake-ups,
+  all in the English passage written to provoke them ("bandana", "banner"), none in the
+  Mandarin passages or in this home's microphone of 11-20. SenseVoice also wrote BNANNA on
+  MiniMax's own sample: the loose match took it (0.83).
+- **Mandarin.**
+  - `languages.default` = `zh`, order zh → en → yue; `LANGUAGES` in that order.
+  - SenseVoice: `per_language` in the local preset — `zh` for a Mandarin household, `auto`
+    otherwise. With `zh` the Mandarin sentences `auto` got wrong come out right; the name is
+    found as well (52 vs 54 of 55 by text, 55 either way with the spotter).
+  - `ConfigSession.drop_foreign_voices()` (on load) and `with_language()` (the dashboard's
+    `POST /api/config/languages`): a voice pinned from another language's list is dropped; a
+    voice the catalog does not list (the owner's own) stays.
+  - `TTSSession.voice()` names the voice `synthesize` speaks with; `ContactSession` keeps it
+    in the `self` contact's notes and enrolls the robot's voice again when it differs, with
+    texts in the household's language.
+  - Model-visible text: the role's register rule (Mandarin in Simplified characters, Cantonese
+    as before), the skills' example phrases, the memory writer's examples, the refusal line
+    and the acknowledgements per language, 39 Mandarin words for the expressions, Mandarin
+    stop / closing / backchannel words, the unpaired-WeChat reply.
+  - The dashboard's Chinese labels (the Live card, the language names) are Mandarin.
+- **The confirm gate.** `loop.py` no longer reads `confirmed` from the arguments; the test
+  fails on the old code (the skill was deleted on the model's own word).
+- **This home** (`.derived_data`, not in git; copies of `config.json` and `contact_v1.db` in
+  `cache/before-94/`): the config saved once after the load (Banana, the two Cantonese voices
+  unpinned → 「Chinese (Mandarin)_Warm_Girl」, the word lists that were still the old defaults
+  → the new ones, language order zh first); 发瘟鸡 and 黎思源 no longer prefer `yue` — they
+  follow the household's language (Contacts → edit to change it back). The robot's own voice
+  print is made again at the next start.
+- **Verification.**
+  - 264 tests pass, 6 skipped (the live ones); ruff, format and mypy are clean.
+  - Live, against MiniMax with this home's key: every slot probes (both TTS slots in the
+    Mandarin voice, domestic region), cloud ASR hears 「banana，今天天气很好…」 with `zh`, the
+    model answers 「我叫Banana，是家里的小管家机器人。」; a turn marked `yue` is still answered
+    in Cantonese.
+  - **Not run on the robot.** The owner had closed sidekick at 00:09 and the work was done at
+    night; the wake name has only met synthesized voices. The first real "Banana" through the
+    robot's microphone is the owner's.
+- **Stale text.** README (the CLI sentence, the gaze trigger, `service` in layer 5),
+  `pyproject.toml` (two comments), the live test's header.
+- **Branches.** Four commits on `phase1-prototype` (the gate, the name, the language, the
+  documents), fast-forwarded into `main` and pushed.
+- **Owner, to try.**
+  - 「Banana，今天天气怎么样？」 from across the room, and the name alone.
+  - A Mandarin speaker with an accent on "banana": the spotter misses those, SenseVoice has to
+    write them. New spellings show on Voice → Decisions; add them on Voice → Hear → Wake name.
+  - Whether 思源 is to be spoken to in Mandarin: the voice and the recogniser are the
+    household's, one language at a time.
+- **On another Mac.** `git clone`, `poetry install`, `poetry run sidekick startup`; a fresh
+  home is written for the host with Banana and Mandarin. To bring this household along: System
+  → Config → Backup here, then unpack the archive into `.derived_data/` there before the first
+  `startup` (models are downloaded at the first Start; nothing reads `restore()` since block
+  #85).
+
+## [2026-11-20 #94] Decision + Todo: the wake name is Banana, Mandarin is the default language, the confirm gate, `main`
+
+- **Owner (2026-11-20):**
+  - 「唤醒词变更为 banana」
+  - 「asr、tts 语种变更为普通话」
+  - Merge to `main` and commit: sidekick is to be deployed on another Mac.
+  - The issues named after reading the project (below) are left to my judgement.
+- **Context: the run of 11-20 00:03–00:09**, the first of blocks #89–#92 on the robot.
+  - The 08:00 wake-up missed for 19 days was reported once, as missed. A bare call got
+    「係？我喺度。」 0.1 s after the name.
+  - The owner had set the household language to 普通话 on the dashboard and spoke Mandarin; the
+    replies stayed Cantonese in the Cantonese voice. Both TTS slots carried an explicit voice
+    (a pinned voice survives a change of the household language), and the two contacts'
+    language is `yue`.
+- **Decisions.**
+  1. *The name and the wake name stay one thing* (block #9), and it is now **Banana**:
+     `robot.name`, its aliases and keyword lines, the persona, every prompt, skill and
+     dashboard string. A home whose config still carries the retired name gets the new name,
+     aliases and keyword lines when it is loaded: the name is fixed by the code, not by the
+     home.
+  2. *Detection, measured* on synthesized utterances — the macOS voices that pronounce the
+     word (five English, Tingting, Meijia) and MiniMax's Mandarin and English voices: 55
+     with the name, 53 short ones without (巴拿马, 把那个拿来, 娜娜, bandana, cabana, Panama) and
+     12.2 min of running speech without it, 5 min of them this home's microphone on 11-20.
+     - Keyword spotter: the lexicon line `B AH0 N AE1 N AH0` finds 32/55 at score 1.5 /
+       threshold 0.25; with `B AH0 N AA1 N AH0` 37/55; at 2.0 / 0.2 40/55 and no false alarm;
+       at 2.5 / 0.15 the first false alarm. Pinyin lines bring nothing (1,520 combinations:
+       18/55) and `b ǎ n à n à` fires on 「把那边的那个拿过来」.
+     - SenseVoice writes the name BANANA, BANANNA, ANANNA, BANAA, once 把娜娜: these are the
+       aliases. A Mandarin speaker's "banana" is what the spotter misses and SenseVoice hears.
+     - The rules written for "Bobby" go: "BB" beside a name, the 比 tail after a Latin stub.
+       A short alias (under five characters) is never matched against a shorter window:
+       「把娜娜」 would otherwise take 「娜娜」 (ratio 0.8, the threshold) for the name.
+  3. *Mandarin is the default language*: `languages.default` = `zh`, order zh → en → yue, the
+     Mandarin voice.
+     - SenseVoice in `auto` decodes some Mandarin as Cantonese (「把那个拿来」 → 「爸妈佢妈嚟」,
+       「不那么难」 → 「本我嘅人」; `zh` gets both right): a `zh` household tells it `zh`.
+     - Changing the household language resets a voice pinned for another language.
+     - The robot's own voice print belongs to the voice it was made from: it is enrolled again,
+       in the household's language, when the TTS voice changes.
+  4. *The confirm gate takes no word from the model.* `loop.py` let a call through when the
+     model put `confirmed: true` in its arguments; no schema declares it, no test used it,
+     and invariant 13 says the speaker confirms.
+  5. *Stale text*: README and `pyproject.toml` still name CLI commands block #85 removed.
+  6. Not changed: a name heard as a closing phrase (「拜拜」 for "Bobby" on 11-20) — the new
+     name does not sound like one.
+- **Todo** (done: block #95).
+  - [x] The confirm gate, with a test.
+  - [x] `config`: name, aliases, keyword lines, spotter sensitivity; the retired name on load.
+  - [x] `namespot`: the Bobby rules out, the short-alias rule in; tests on the new name.
+  - [x] Persona, prompts, skills, dashboard strings, comments and module headers.
+  - [x] Mandarin defaults; SenseVoice language; the voice reset; the self voice.
+  - [x] This home: config, the pinned voice, the contacts' language.
+  - [x] AGENTS, README / README_CN, `pyproject.toml`; tests, ruff, mypy; `main`.
 
 ## [2026-11-01 #93] Research: the conversion revisited after the owner's feedback — Seeed parts, size as a criterion
 

@@ -7,7 +7,7 @@ channels such as Telegram and WeChat. It is OpenClaw-like in shape — gateway, 
 runtime with tools / MCP / skills, memory, automations, heartbeat — with the robot as its embodied
 node.
 
-Status: **Phases 0–6 done, console v3 landed** — the robot wakes on "Bobby", listens, answers in Cantonese through
+Status: **Phases 0–6 done, console v3 landed** — the robot wakes on "Banana", listens, answers in Mandarin (Cantonese and English can be chosen) through
 MiniMax, can be interrupted; the self-built agent has tools, memory written from the conversations
 themselves (L0 timeline → L1 episodes → L2 facts per person and household), skills, MCP, reminders
 and a heartbeat; Telegram and WeChat (iLink) channels and presence events are in; household members are
@@ -17,8 +17,8 @@ stream, a 3D Reachy Mini posed from the real joints, the engagement state, the d
 progress with its time to the first word, one card per module, the activity stream), has a **Robot** page that gathers every robot figure and lets you take
 the body over to test motion, microphone, speaker, camera and video, records the last **24 hours** of
 video, audio and telemetry in 5-minute chunks, and replays them like a control room (video,
-tracks, scrubber, 3D pose). Deployment profiles (`lite-mac`, `wireless`, `pi`), login services and
-backups are in the CLI. See `PLAN.md` for the status board and
+tracks, scrubber, 3D pose). The command line only starts and closes sidekick (`sidekick startup` /
+`sidekick close`); everything else, backups included, is on the dashboard. See `PLAN.md` for the status board and
 roadmap. Coding agents start at `AGENTS.md`. 中文说明见 `README_CN.md`.
 
 ## What it will do
@@ -56,7 +56,7 @@ roadmap. Coding agents start at `AGENTS.md`. 中文说明见 `README_CN.md`.
 Layers and the one-way dependency rule (the full allowed-import table is in `AGENTS.md`):
 
 ```text
-L5  app.py · cli.py · dashboard · doctor
+L5  app.py · cli.py · dashboard · doctor · service
 L4  automation                     jobs, scheduler, event jobs, heartbeat, its scheduling tools
     extension + extensions/        robot · news · media · home: tools, MCP, skills, subagents, watchers
 L3  agent                          main agent + subagents, dialogue, memory, tool protocol, MCP, skills
@@ -75,7 +75,7 @@ does in its own `setup` and undoes in its own `stop`. `tests/test_architecture.p
 
 ```text
 mic (16 kHz, hardware AEC) ──► body.AudioPump ──► interaction.frontend (Silero VAD, 1 s pre-roll,
-                                                   streaming keyword spotter "Bobby")
+                                                   streaming keyword spotter "Banana")
         │ speech segment + direction of arrival
         ▼
 interaction.engagement  IDLE: local SenseVoice + keyword spotter ─► wake name? ──no──► traced, dropped
@@ -159,7 +159,7 @@ The heartbeat (`automation/heartbeat.py`) is a built-in periodic job: the main a
 something new since its last run that the household has not heard yet, then speaks, sends, or
 stays silent. It is not a system tick that other modules listen to; nothing depends on it.
 Reminders are spoken by their own jobs, never by the heartbeat; it is told when it last ran and
-what Bobby already said unprompted that day, so it does not repeat itself.
+what Banana already said unprompted that day, so it does not repeat itself.
 
 ## Provider framework
 
@@ -190,9 +190,9 @@ extension.json ──► loader ──► registry (enabled, settings)
       └── watchers.py    ───────► perception event bus
 ```
 
-## Starting and stopping Bobby
+## Starting and stopping Banana
 
-The command line only starts and closes sidekick; Bobby itself is switched on the dashboard.
+The command line only starts and closes sidekick; Banana itself is switched on the dashboard.
 
 ```text
 sidekick startup ──► the process: dashboard · data pages · readiness · service    (sidekick close ends it)
@@ -213,7 +213,7 @@ sidekick startup ──► the process: dashboard · data pages · readiness · 
 
 A module that cannot prove itself (no microphone, a model slot that does not answer) aborts the
 start and everything started is stopped again; advice (no Telegram token, the camera warming up)
-runs marked. The choice is remembered: `sidekick startup` brings Bobby back only when it was left
+runs marked. The choice is remembered: `sidekick startup` brings Banana back only when it was left
 running, and reminders that fell due while it was stopped are sent at the next start, saying they
 come late.
 
@@ -240,7 +240,7 @@ Live     now (a module's page is the depth): camera (MJPEG, lifted when dark, fa
 Body     left: the 3D body (SDK URDF meshes, measured pose + joints) with the camera beside it, telemetry (commanded vs measured pose,
          joints, antennas, levels, DoA, face, daemon), the controller (Take control → sliders for head / height / body yaw / antennas, gestures,
          emotions) and the tests (mic capture, speaker tone / sweep / replay, say, snapshot, video);
-         the Expressions card (Bobby's own library, intensity, a thinking preview);
+         the Expressions card (Banana's own library, intensity, a thinking preview);
          right: the body's parameters (expressiveness, sway + liveliness, attention, daemon)  ← /api/robot/*
 Voice    views: Decisions (meters, engagement state, decisions with clips) · Hear (VAD / ASR service cards,
          thresholds, wake name, triggers, words, TV sector) · Speak (TTS service cards, language, the pause
@@ -260,7 +260,7 @@ Replay   day strip → chunk video + synced audio tracks → canvas tracks (enve
          decision / event markers) → scrub → 3D body at that moment
 ```
 
-## Memory: what Bobby keeps from a conversation
+## Memory: what Banana keeps from a conversation
 
 ```text
 L0 timeline    every message, in a conversation: the room while turns follow within 5 min, a chat within
@@ -271,7 +271,7 @@ memory writer  one `smart` call → an episode + proposed facts → the rules de
    │           open conversations · health / money / relationships only first-person, private ·
    │           a change supersedes, never deletes · the test card, jobs and subagents write nothing
    ▼
-L1 episode     title · summary · follow-ups ("睇牙順唔順利？" the day after) · participants · conversation
+L1 episode     title · summary · follow-ups ("看牙顺利吗？" the day after) · participants · conversation
 L2 facts       per person and the household: category · teller · channel · asked / inferred · until ·
    │           sources;  nightly 03:00: expire dated facts · digest a profile that outgrew the prompt ·
    │           merge duplicates (refused past a quarter)
@@ -286,7 +286,7 @@ memory block   read once from SQLite and frozen — no model, no search on the t
 ```text
 unknown voice ──► person:N (voice centroid; face when the sound direction matches the largest face)
    heard enough (≥ 6 turns over ≥ 2 visits, or 8 in one) ──► event person.ready
-   ──► automation "befriend" → main agent + befriending skill: 「你叫咩名？」→ confirm → 「想唔想我記住你？」
+   ──► automation "befriend" → main agent + befriending skill: 「你叫什么名字？」→ confirm → 「想不想让我记住你？」
    ──► tool befriend(person_id, name) → a contact with everything collected · no owner approval
    not seen for 7 days ──► forgotten            Contacts page: "People seen" with Befriend / Forget
    until befriended: voice / face only — `remember` keeps nothing for a person:N, and a name the
@@ -295,7 +295,7 @@ unknown voice ──► person:N (voice centroid; face when the sound direction 
 
 A known voice stays known from day to day (block #80): a contact at the threshold beats a closer
 person:N, a voice just under it (0.35–0.5) is never a new person and three such sentences of one
-conversation identify it by their mean, a sentence under 1 s ("Bobby") is not identified at all,
+conversation identify it by their mean, a sentence under 1 s (the name alone) is not identified at all,
 every recognised sentence keeps teaching the contact's voice, and a person:N that turns out to be
 a contact's voice (centroids ≥ 0.55) is merged into it — by voice, never by name.
 
@@ -307,17 +307,18 @@ SLEEPING ──daemon wakes the robot──► IDLE ──trigger──► ENGAG
    └──────── daemon sleeps it ────────┴── timeout / bye ─┘
 
 IDLE     local only: VAD · keyword spotter · SenseVoice name check · DoA · faces   (no cloud ASR)
-trigger  "Bobby" (keyword spotter on the live mic feed, or SenseVoice text with fuzzy aliases) ·
-         antenna touch · robot-initiated speech · (gaze + enrolled voice: Phase 4)
+trigger  "Banana" (keyword spotter on the live mic feed, or SenseVoice text: the aliases as it
+         writes them, the name itself loosely, word by word) · antenna touch · robot-initiated
+         speech · gaze + enrolled voice (off by default)
 ENGAGED  session with an addressee (speaker id or direction); follow-ups need no wake name until
-         8 s of silence after Bobby stops talking (15 s after Bobby asked a question; a sentence
+         8 s of silence after Banana stops talking (15 s after Banana asked a question; a sentence
          begun in time always counts), "再見", or two NO_REPLY answers. The name alone gets a
-         spoken answer at once ("喺度！咩事呀？")
+         spoken answer at once ("我在！什么事？")
 SPEAKING two-stage interruption: qualifying speech ducks −12 dB; ≥ 0.9 s of speech, a stop word,
          the wake name or an antenna touch stops; fillers, backchannels and the robot's own echo never do
 ```
 
-The robot never wakes or sleeps itself: the Reachy daemon does both — spawned when Bobby's
+The robot never wakes or sleeps itself: the Reachy daemon does both — spawned when Banana's
 service starts, stopped (the sleep move) when it stops. Every decision is traced with its scores and a short clip, and the dashboard's listening
 monitor shows them live, so thresholds and triggers are tuned on real household data instead of
 guessed.
@@ -328,22 +329,22 @@ Two layers sit on top of the machine. **Attention** never speaks: while idle the
 glance at a random direction every 8–15 s (the camera only sees 90°), turns toward a clear sound
 to see who made it, and keeps a face it sees centred (our own detector at 10 fps drives a servo
 through the motion owner, so nods still show; there is no idle breathing any more); a face that stays centred and turned
-toward the camera for 2.5 s is a *mutual gaze*. While Bobby speaks, its head sways with its own
+toward the camera for 2.5 s is a *mutual gaze*. While Banana speaks, its head sways with its own
 voice — our port of the SDK's wobble, with a "liveliness" slider on Body (a third of the SDK's
-default) and every amplitude and frequency in `body.sway`. **Expressions are Bobby's own** — 51
+default) and every amplitude and frequency in `body.sway`. **Expressions are Banana's own** — 51
 offset curves (conversational beats, emotions, performances, the thinking states) played on top
-of the gaze, never with a sound. In a conversation Bobby gives a small nod when it has heard
+of the gaze, never with a sound. In a conversation Banana gives a small nod when it has heard
 you, tilts its head a little while it thinks with the antennas swaying in turn (the tilt
 changes side with a small "hmm" if it takes longer) and keeps its eyes on you, sometimes nods on a new
 phrase while it talks, and nods "mm-hm" at your pauses; emotions come only when the agent
 feels one (`[express:laugh]`, most replies none), and `[style:lively]` (stories, play with
 children) or `[style:calm]` (comfort, bad news) scales one reply on top of the household's
-`body.expressiveness`. Speech that starts and ends while Bobby's own head
+`body.expressiveness`. Speech that starts and ends while Banana's own head
 motors run is marked as self motion and never ducks playback. **Initiative** goes through the agent
 and a budget: a known household member's first mutual gaze after two hours away becomes a
 `greet.due` event, the robot extension's `greet` automation asks the agent for one short greeting
 (or `NO_REPLY`), and the `sociability` setting on the Automation page — quiet / normal / chatty —
-decides how often that may happen. Sounds and strangers never make Bobby speak first.
+decides how often that may happen. Sounds and strangers never make Banana speak first.
 
 ## Repository layout
 
@@ -369,13 +370,13 @@ PLAN.md           timestamped plan, decisions, research
 # run every command from the repository root; state lives in ./.derived_data/
 poetry install
 poetry run sidekick startup     # sidekick in the background; prints http://127.0.0.1:8787/
-poetry run sidekick close       # Bobby stops (the robot sleeps), then sidekick
+poetry run sidekick close       # Banana stops (the robot sleeps), then sidekick
 ```
 
 A fresh home gets a first config for the host (macOS: the Lite on USB; a Linux ARM board: the Pi
 profile); with `$MINIMAX_API_KEY` set the key is filled in for development. On the dashboard,
 System lists what is still missing (the MiniMax key goes on the Agent tab's service cards) and the
-power control at the bottom of the module list starts Bobby; then say "Bobby，今日天氣點呀？" or
+power control at the bottom of the module list starts Banana; then say "Banana，今天天气怎么样？" or
 push an antenna. Telegram (bot token, pairing code) and WeChat (QR login) are on Channel,
 extensions on Extension, backups on System; without a robot, Body → Daemon & connection sets the
 daemon to a mockup simulation or the body to `null`.

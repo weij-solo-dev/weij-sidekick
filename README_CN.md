@@ -5,12 +5,12 @@
 Telegram、微信等远程渠道与家人交流。整体形态类似 OpenClaw：网关、渠道、自研的 agent 运行时（工具 / MCP / skills）、
 记忆、自动化、心跳，机器人则是它的具身节点。
 
-状态：**Phase 0–6 已完成，控制台 v3 已落地** —— 机器人听到"Bobby"会醒来聆听，用 MiniMax 以粤语作答，可被打断；自研 agent 具备工具、
+状态：**Phase 0–6 已完成，控制台 v3 已落地** —— 机器人听到"Banana"会醒来聆听，用 MiniMax 以普通话作答（可改选粤语或英语），可被打断；自研 agent 具备工具、
 从对话本身总结出来的记忆（L0 时间线 → L1 情节 → L2 每个人和全家的事实）、skills、MCP、提醒与心跳；Telegram 与微信（iLink）渠道、在场感知事件已接入；家庭成员可通过声纹与人脸识别；
 扩展提供机器人工具、新闻简报、媒体中心与 Home Assistant。本地控制台以 **Live** 页开场，实时监视每个模块（摄像头实时画面、
 按真实关节摆姿势的 3D Reachy Mini、交互状态、对话、进行中这一轮及其首字耗时、每个模块一张卡、活动流），**Robot** 页汇总机器人全部实时数据并可
 "劫持"机器人测试动作、麦克风、扬声器、拍照与录像，持续录制最近 **24 小时**的视频、音频与遥测（5 分钟一片），并以
-"幕后监制"方式回看（视频、多轨道、拖动时间轴、3D 姿态）。部署配置（`lite-mac`、`wireless`、`pi`）、开机服务与备份都在 CLI 中。
+"幕后监制"方式回看（视频、多轨道、拖动时间轴、3D 姿态）。命令行只负责启动和关闭（`sidekick startup` / `sidekick close`），其余操作（含备份）都在 dashboard 上。
 状态看板与路线图见 `PLAN.md`。coding agent 从 `AGENTS.md` 开始。English: `README.md`。
 
 ## 它要做什么
@@ -47,7 +47,7 @@ Telegram、微信等远程渠道与家人交流。整体形态类似 OpenClaw：
 分层与单向依赖规则（完整的允许导入表见 `AGENTS.md`）：
 
 ```text
-L5  app.py · cli.py · dashboard · doctor
+L5  app.py · cli.py · dashboard · doctor · service
 L4  automation                     任务、调度器、事件任务、心跳，以及它自己的调度工具
     extension + extensions/        robot · news · media · home：工具、MCP、skills、subagent、观察者
 L3  agent                          main agent + subagents、dialogue、memory、工具协议、MCP、skills
@@ -64,7 +64,7 @@ L0  log · storage · audio
 
 ```text
 麦克风（16 kHz，硬件回声消除）──► body.AudioPump ──► interaction.frontend（Silero VAD，1 s 前置缓冲，
-                                                     流式关键词识别"Bobby"）
+                                                     流式关键词识别"Banana"）
         │ 语音片段 + 声源方向
         ▼
 interaction.engagement  IDLE：本地 SenseVoice + 关键词识别 ─► 有名字？──否──► 记录追踪后丢弃
@@ -167,9 +167,9 @@ extension.json ──► 加载器 ──► 注册表（启用状态、设置�
       └── watchers.py    ───────► perception 事件总线
 ```
 
-## 启动与停止 Bobby
+## 启动与停止 Banana
 
-命令行只负责启动和关闭 sidekick；Bobby 本身在 dashboard 上开关。
+命令行只负责启动和关闭 sidekick；Banana 本身在 dashboard 上开关。
 
 ```text
 sidekick startup ──► 进程：dashboard · 数据页面 · 就绪检查 · 服务         （sidekick close 结束它）
@@ -188,7 +188,7 @@ sidekick startup ──► 进程：dashboard · 数据页面 · 就绪检查 ·
 
 有模块证明不了自己（没有麦克风、模型槽位不应答）就中止启动，已经启动的部分会停回去；建议类问题（没配
 Telegram、摄像头还在预热）照常运行并标出来。选择会被记住：只有上次是"运行中"，`sidekick startup` 才会把
-Bobby 一起带起来；停止期间到点的提醒会在下次启动时补发，并说明是迟到的提醒。
+Banana 一起带起来；停止期间到点的提醒会在下次启动时补发，并说明是迟到的提醒。
 
 ## 控制台：每个 Tab 收拢自己的参数
 
@@ -206,7 +206,7 @@ Live     管"现在"（模块页管深度）：上排摄像头（MJPEG，暗时�
          （听到 / 说的话、到首字的时间、ASR → 首字 → TTS → 说话、每次工具调用一个标签）和每个模块一张卡：Agent · 服务 ·
          记忆 · 自动化 · 频道 · 系统 · 身体 · 感知 · 联系人 · 录制 · 扩展     ← /api/live：每秒 10 帧，每秒一次 live() + 活动
 Body     左：3D 机身（SDK URDF 网格，实测位姿 + 关节），右边并排摄像头；遥测、控制器（"接管"后用滑杆控制头部 / 高度 / 机身偏航 / 天线，手势、表情）与测试（录麦克风、扬声器
-         正弦 / 扫频 / 回放、说一句话、拍照、录视频）、表情卡（Bobby 自己的表情库、强度、思考预览）；右：身体参数（表现力、摆动与生动程度、注意力、daemon）  ← /api/robot/*
+         正弦 / 扫频 / 回放、说一句话、拍照、录视频）、表情卡（Banana 自己的表情库、强度、思考预览）；右：身体参数（表现力、摆动与生动程度、注意力、daemon）  ← /api/robot/*
 Voice    视图：Decisions（电平、对话状态、判定列表与音频片段）· Hear（VAD / ASR 服务卡、阈值、唤醒名、触发、
          词表、电视扇区）· Speak（TTS 服务卡、语言、句号后的停顿）· Traces（ASR / TTS 调用追踪）
 Agent    视图：Swarm（每个 agent 一张卡片：主 agent 在最前，可看规则、工具并直接改参数；子 agent 自建的可新建 / 编辑 /
@@ -224,7 +224,7 @@ Replay   一天的分片条 → 分片视频 + 同步的两路音轨 → 轨道�
          当时的 3D 姿态
 ```
 
-## 记忆：Bobby 从一段对话里留下什么
+## 记忆：Banana 从一段对话里留下什么
 
 ```text
 L0 时间线    每条消息都属于一段会话：客厅里前后相隔不到 5 分钟算同一段，聊天相隔不到 15 分钟算同一段
@@ -234,7 +234,7 @@ L0 时间线    每条消息都属于一段会话：客厅里前后相隔不到 
    │         只记有名字的人 · 私聊的内容只归讲的人、私密 · 全家的事实只来自公开的对话 ·
    │         健康 / 钱 / 感情只记本人亲口说的、私密 · 改变了就取代、不删除 · 测试卡、任务、子 agent 不写
    ▼
-L1 情节      标题 · 摘要 · 跟进（第二天问「睇牙順唔順利？」）· 参与者 · 对应的会话
+L1 情节      标题 · 摘要 · 跟进（第二天问「看牙顺利吗？」）· 参与者 · 对应的会话
 L2 事实      每个人一份、全家一份：类别 · 谁讲的 · 哪个渠道 · 明确要求 / 推断 · 到期日 · 来源；
    │         每晚 03:00：清掉过期的事 · 画像太长时写摘要 · 合并重复（超过四分之一就拒绝）
    ▼ 新一段会话开始
@@ -247,7 +247,7 @@ L2 事实      每个人一份、全家一份：类别 · 谁讲的 · 哪个渠
 ```text
 未知声音 ──► person:N（声纹中心；声源方向与画面最大人脸吻合时也存人脸）
    听得够多（≥ 6 句跨 ≥ 2 次来访，或单次 ≥ 8 句）──► 事件 person.ready
-   ──► automation「befriend」→ 主 agent 按 befriending skill：「你叫咩名？」→ 复述确认 →「想唔想我記住你？」
+   ──► automation「befriend」→ 主 agent 按 befriending skill：「你叫什么名字？」→ 复述确认 →「想不想让我记住你？」
    ──► 工具 befriend(person_id, name) → 成为联系人，之前收集的声纹人脸全部保留 · 不需要 owner 批准
    7 天没再见 ──► 遗忘                        Contacts 页「見過的人」可手动 Befriend / Forget
    交朋友之前只存声纹和人脸：`remember` 不给 person:N 存记忆；名字和已有成员重名时另建一个联系人
@@ -256,7 +256,7 @@ L2 事实      每个人一份、全家一份：类别 · 谁讲的 · 哪个渠
 
 认识的声音隔天也认得（block #80）：已注册的人只要达到门槛，就优先于更接近的 person:N；略低于门槛
 （0.35–0.5）的声音不会被当成新的陌生人，同一段对话里有三句这样的话，就用它们的平均声纹再认一次；不到 1 秒的话
-（比如只叫一声「Bobby」）不做识别；每句认出来的话都会继续学习进这个人的声纹；某个 person:N 后来被证明就是某位
+（比如只叫一声名字）不做识别；每句认出来的话都会继续学习进这个人的声纹；某个 person:N 后来被证明就是某位
 联系人的声音（声纹中心相似度 ≥ 0.55）时会合并过去——只凭声音，绝不凭名字。
 
 ## 聆听：机器人何时回应？
@@ -267,16 +267,16 @@ SLEEPING ──daemon 唤醒机器人──► IDLE ──触发──► ENGAGE
    └──────── daemon 让其入睡 ────┴── 超时 / 再见 ─┘
 
 IDLE     仅本地：VAD · 关键词识别 · SenseVoice 名字核对 · 声源方向 · 人脸     （不上云 ASR）
-触发     "Bobby"（关键词识别器直接听麦克风流，或 SenseVoice 文本模糊匹配别名）· 触碰天线 ·
-         机器人主动说话 ·（注视 + 已注册声纹：Phase 4）
-ENGAGED  与某位对话者（声纹或方向）的会话；后续轮次无需再叫名字，直到 Bobby 说完后静默 8 s（Bobby 提问后
-         为 15 s；在时限内开口的话一定算数）、"再见"或连续两次 NO_REPLY。只喊名字时 Bobby 立刻出声
-         回应（"喺度！咩事呀？"）
+触发     "Banana"（关键词识别器直接听麦克风流，或 SenseVoice 文本：别名按原样匹配，名字本身按整词
+         模糊匹配）· 触碰天线 · 机器人主动说话 · 注视 + 已注册声纹（默认关闭）
+ENGAGED  与某位对话者（声纹或方向）的会话；后续轮次无需再叫名字，直到 Banana 说完后静默 8 s（Banana 提问后
+         为 15 s；在时限内开口的话一定算数）、"再见"或连续两次 NO_REPLY。只喊名字时 Banana 立刻出声
+         回应（"我在！什么事？"）
 SPEAKING 两段式打断：符合条件的人声先压低 −12 dB；说话 ≥ 0.9 s、停止词、机器人名字或触碰天线才真正停下；
          填充音、附和与机器人自己的回声永不打断
 ```
 
-机器人从不自行唤醒或入睡：两者都由 Reachy daemon 负责——Bobby 的服务启动时拉起 daemon，服务停止时让它带着
+机器人从不自行唤醒或入睡：两者都由 Reachy daemon 负责——Banana 的服务启动时拉起 daemon，服务停止时让它带着
 睡姿动作退出。每次判定都带分值与
 短音频片段写入追踪，dashboard 的"聆听监视"实时展示，阈值与触发方式用真实的家庭数据调，而不是猜。
 
@@ -285,15 +285,15 @@ SPEAKING 两段式打断：符合条件的人声先压低 −12 dB；说话 ≥ 
 状态机之上有两层。**注意力层**从不说话：空闲时每 8–15 秒慢慢瞥一眼随机方向（相机只有 90° 视野），听到清晰的
 声响就转头看是谁，看到人脸就把它保持在画面中央（我们自己的检测器以 10 fps 驱动一个经运动所有者的伺服，点头
 照常叠加；空闲时不再有呼吸起伏）；说话时头会随自己的声音轻轻摆动——这是我们复刻 SDK 的 wobble，Body 页有「生动程度」滑杆（默认是
-SDK 的三分之一），各轴幅度与频率都在 `body.sway` 里；**表情是 Bobby 自己的**：51 条偏移曲线（对话小动作、情绪、
+SDK 的三分之一），各轴幅度与频率都在 `body.sway` 里；**表情是 Banana 自己的**：51 条偏移曲线（对话小动作、情绪、
 表演、思考状态），叠加在注视之上播放，不带任何音效。对话里它听到你说话会轻轻点头，思考时头微微侧一下、天线轮流摆动
 （想得久会慢慢换到另一侧，再"嗯"一下），视线始终留在你身上，说话时偶尔在新的一句点头，你说话停顿时轻轻"嗯嗯"点头；
 情绪只在 agent 真有感受时才做（`[express:laugh]`，大多数回复没有），`[style:lively]`（讲故事、陪小朋友）或
-`[style:calm]`（安慰、坏消息）只放大或收小那一段回复，家里的基准是 `body.expressiveness`；一张居中、正对相机并持续 2.5 秒的脸算作"对视"。Bobby 自己头部
+`[style:calm]`（安慰、坏消息）只放大或收小那一段回复，家里的基准是 `body.expressiveness`；一张居中、正对相机并持续 2.5 秒的脸算作"对视"。Banana 自己头部
 电机转动期间开始并结束的声音会标记为自身动作，永远不会压低播放。**主动行为层**要经过 agent 和预算：认识的
 家庭成员离开两小时后第一次对视会产生 `greet.due` 事件，robot 扩展的 `greet` 自动化让 agent 写一句简短的问候
 （或回答 `NO_REPLY`）；Automation 页的"话多程度"（quiet / normal / chatty）决定这种事多久允许一次。声响和陌生人
-永远不会让 Bobby 先开口。
+永远不会让 Banana 先开口。
 
 ## 仓库结构
 
@@ -319,12 +319,12 @@ PLAN.md           带时间戳的计划、决策、预研
 # 所有命令在仓库根目录执行；状态保存在 ./.derived_data/
 poetry install
 poetry run sidekick startup     # 在后台启动 sidekick；打印 http://127.0.0.1:8787/
-poetry run sidekick close       # Bobby 停止（机器人睡下），然后关闭 sidekick
+poetry run sidekick close       # Banana 停止（机器人睡下），然后关闭 sidekick
 ```
 
 全新的 home 会按主机生成第一份配置（macOS：USB 连接的 Lite；Linux ARM 板：树莓派配置）；设置了
 `$MINIMAX_API_KEY` 时会顺手填入 key，方便开发。在 dashboard 上，System 列出还缺什么（MiniMax key 填在 Agent
-页的服务卡上），模块列表底部的电源控件启动 Bobby；然后说"Bobby，今日天氣點呀？"或轻推天线。Telegram（bot
+页的服务卡上），模块列表底部的电源控件启动 Banana；然后说"Banana，今天天气怎么样？"或轻推天线。Telegram（bot
 token、配对码）和微信（扫码登录）在 Channel，扩展在 Extension，备份在 System；没有机器人时，在 Body →
 Daemon & connection 把 daemon 设成 mockup 仿真，或把机身设成 `null`。
 
