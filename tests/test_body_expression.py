@@ -1,4 +1,4 @@
-"""Bobby's own expressions: the library, the curves, plays, the motion owner's layers, styles."""
+"""Banana's own expressions: the library, the curves, plays, the motion owner's layers, styles."""
 
 from __future__ import annotations
 
@@ -275,7 +275,7 @@ def test_backchannel_nods_only_while_they_talk_and_not_too_often():
     times = [10.0 + i for i, r in enumerate(results) if r]
     assert all(b - a >= 3.5 for a, b in itertools.pairwise(times))
     attention.speaking(True)
-    assert attention.backchannel(100.0) is False  # never while Bobby speaks
+    assert attention.backchannel(100.0) is False  # never while Banana speaks
 
 
 def test_front_end_reports_a_pause_inside_a_sentence():

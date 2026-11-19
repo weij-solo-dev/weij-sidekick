@@ -1,8 +1,8 @@
-"""sidekick.interaction.call — Bobby answers out loud when someone only calls its name
+"""sidekick.interaction.call — Banana answers out loud when someone only calls its name
 
 Overview
-    "Bobby!" with nothing after it used to get a nod and a flick of the antennas. People meeting
-    Bobby for the first time took the silence for a broken robot (owner, 2026-11-01, block #92).
+    The name with nothing after it used to get a nod and a flick of the antennas. People meeting
+    Banana for the first time took the silence for a broken robot (owner, 2026-11-01, block #92).
     A short spoken answer — 「喺度！咩事呀？」 — now plays at once. Its clips are synthesized
     when the voice front end starts, so the answer comes as fast as a person's: no model call
     and no TTS round trip on the call itself.

@@ -4,24 +4,28 @@ Overview
     A recognizer whose whole vocabulary is the robot's name: the zipformer keyword-spotting
     model (`sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20`, ~3 M parameters, English phones +
     Mandarin pinyin) scans a clip for the configured keyword token sequences and
-    `transcribe()` returns the matched labels (e.g. `"bobby"`) or an empty text. It complements
-    SenseVoice name spotting, which heard "Bobby" through a speaker only one time in three on
-    2026-10-26, while this model caught every clean utterance with no false positive on the
-    same clips (PLAN.md block #13).
+    `transcribe()` returns the matched labels (e.g. `"banana"`) or an empty text. It complements
+    SenseVoice name spotting: each hears what the other misses. With the first name, "Bobby",
+    SenseVoice heard it through a speaker one time in three while this model caught every clean
+    utterance (PLAN.md block #13); with "Banana" SenseVoice writes the name nearly every time
+    and this model finds 40 of 55 synthesized utterances, missing the Mandarin-accented ones
+    (block #94).
 Design
     Same shape as every ASR backend (`*Configuration` + `transcribe(clip) -> ASRResult`,
     invariant 4) so it binds to the `asr.kws` slot through the ordinary `match api`. Keywords are
-    declarative token lines in the sherpa format (`B AA1 B IY0 @bobby`, `b ǎo b ǐ @寶比`) taken
-    from `robot.keywords`; the backend writes them to a keywords file next to the model. English
-    words are looked up in the model's `en.phone` lexicon when a keyword is given as plain text
-    (`bobby @bobby`). Decoding runs in a worker thread; a pooled spotter is reused per thread.
+    declarative token lines in the sherpa format (`B AH0 N AE1 N AH0 @banana`; pinyin tokens
+    work the same way, `b ā n à n à @label`) taken from `robot.keywords`; the backend writes them
+    to a keywords file next to the model. English words are looked up in the model's `en.phone`
+    lexicon when a keyword is given as plain text (`banana @banana`). Decoding runs in a worker
+    thread; a pooled spotter is reused per thread.
     `spot_stream()` offers incremental spotting for a future always-on mode.
 Depends on
     sidekick.log, sidekick.storage, sidekick.audio, numpy, sherpa-onnx (lazy).
 
 See Also
 --------
-    AGENTS.md "Interaction" trigger 1 (`wake_name`), PLAN.md block "[2026-10-26 #13]".
+    AGENTS.md "Interaction" trigger 1 (`wake_name`), PLAN.md blocks "[2026-10-26 #13]",
+    "[2026-11-20 #94]".
 
 """
 
@@ -48,13 +52,8 @@ MODEL_URL = (
     f"https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/{MODEL_NAME}.tar.bz2"
 )
 DEFAULT_KEYWORDS: tuple[str, ...] = (
-    "B AA1 B IY0 @bobby",
-    "B AO1 B IY0 @bobby",
-    "B OW1 B IY0 @bobby",
-    "B AO1 B EY1 @bobby",
-    "b ō b ǐ @波比",
-    "b ā b ǐ @巴比",
-    "b ǎo b ǐ @寶比",
+    "B AH0 N AE1 N AH0 @banana",
+    "B AH0 N AA1 N AH0 @banana",
 )
 
 

@@ -1,4 +1,4 @@
-"""Bobby's service on the real modules over a null body: start → stop → start … in one process.
+"""Banana's service on the real modules over a null body: start → stop → start … in one process.
 
 Block #83's contract: every module's session lives as long as the process, `setup` runs again
 before each start, `stop` releases what `start` took — no thread, callback, subscription or tool
@@ -125,7 +125,7 @@ def app(tmp_path, monkeypatch):
     spec.automation.heartbeat_minutes = 0
     spec.dashboard.port = _free_port()
     ConfigSession(storage).save(spec)
-    # Bobby stays stopped at boot, so the test can switch the news feeds off first.
+    # Banana stays stopped at boot, so the test can switch the news feeds off first.
     storage.write_json(storage.layout.service_path, {"wanted": "stopped", "by": "test"})
     llm = FakeLLM()
 
@@ -195,7 +195,7 @@ async def test_the_service_cycles_on_the_same_singletons(app):
     assert service.wanted == "running"  # a process exit is not the owner's Stop
 
 
-async def test_a_failed_model_call_keeps_bobby_stopped(app, monkeypatch):
+async def test_a_failed_model_call_keeps_banana_stopped(app, monkeypatch):
     async def broken(messages, options=None):
         return LLMResult(False, None, "fake", "fake", "fake-1", "****", error_message="401")
 

@@ -1,13 +1,13 @@
-"""sidekick.doctor.doctor — DoctorSession: is Bobby ready, and what is missing?
+"""sidekick.doctor.doctor — DoctorSession: is Banana ready, and what is missing?
 
 Overview
     The readiness list that replaced the first-run wizard (PLAN.md block #44). One function
-    answers "can Bobby hold a conversation right now, and if not, what do I fix where?" for the
+    answers "can Banana hold a conversation right now, and if not, what do I fix where?" for the
     dashboard (rail card, sidebar dots, the Live empty state, the System page) and for the
     service's start gate. Three layers, cheapest first:
 
     - **local** — the **prerequisites** (Python, the config, every bound slot's provider and
-      credentials, free disk: what must hold before Bobby starts, the start's first step) and
+      credentials, free disk: what must hold before Banana starts, the start's first step) and
       the on-host models, then — while the service runs — every module's own `check()` items
       (the robot's daemon / link / camera / microphone, the voice front end, the agent's model
       call, contacts, channels, recording, extensions; block #86), collected through the
@@ -130,7 +130,7 @@ class DoctorSession:
         return self.config.spec
 
     async def start(self) -> None:
-        """Log the local summary: the last lines of the start-up log name what blocks Bobby."""
+        """Log the local summary: the last lines of the start-up log name what blocks Banana."""
         report = self.local(force=True)
         Log.info(f"readiness: {report.summary()} (details on the dashboard's System page)")
         for item in report.items:
@@ -202,7 +202,7 @@ class DoctorSession:
     # ------------------------------------------------------------------ local layer
 
     def prerequisites(self) -> list[DoctorItem]:
-        """What must hold before Bobby starts (the start's first step, block #84).
+        """What must hold before Banana starts (the start's first step, block #84).
 
         Python, the config, every bound slot's provider and credentials, free disk.
         """
@@ -292,7 +292,7 @@ class DoctorSession:
                 "models.speech",
                 "speech models",
                 "bad" if missing else "ok",
-                f"missing: {', '.join(missing)} (downloaded when Bobby starts)"
+                f"missing: {', '.join(missing)} (downloaded when Banana starts)"
                 if missing
                 else " · ".join(speech),
                 "voice",

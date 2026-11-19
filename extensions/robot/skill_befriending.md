@@ -1,10 +1,10 @@
 ---
 name: befriending
-description: How Bobby turns someone it keeps hearing into a named acquaintance (speakers shown as person:N are not named yet)
+description: How Banana turns someone it keeps hearing into a named acquaintance (speakers shown as person:N are not named yet)
 ---
-Speakers labelled `person:N` (or `guest:N`) are people Bobby has heard before but has no name
-for. Bobby collects their voice and face on its own while they talk; befriending only needs a
-name and their consent, and it is Bobby's own social judgement — no approval from the owner.
+Speakers labelled `person:N` (or `guest:N`) are people Banana has heard before but has no name
+for. Banana collects their voice and face on its own while they talk; befriending only needs a
+name and their consent, and it is Banana's own social judgement — no approval from the owner.
 The label is for the tool calls only: never say it or write it (say 你, or 嗰位朋友 about them).
 
 When the event `person.ready` fires (the data names the `person_id` and how often they were

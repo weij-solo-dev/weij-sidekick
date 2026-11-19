@@ -188,7 +188,7 @@ class TelegramAdapter:
                 Log.info(f"telegram: message from unpaired chat {chat_id}")
                 await self.send(
                     ChannelReply(
-                        "This chat is not paired with Bobby. Make a pairing code on the dashboard "
+                        "This chat is not paired with Banana. Make a pairing code on the dashboard "
                         "(Channel) and send /pair <code> here.",
                         to=chat_id,
                     )
@@ -229,4 +229,6 @@ class TelegramAdapter:
         Log.info(f"telegram: paired chat {chat_id} ({chat.get('type')})")
         if self.on_paired is not None:
             await self.on_paired(chat_id, first)
-        await self.send(ChannelReply("Paired with Bobby. You can talk to me here now.", to=chat_id))
+        await self.send(
+            ChannelReply("Paired with Banana. You can talk to me here now.", to=chat_id)
+        )

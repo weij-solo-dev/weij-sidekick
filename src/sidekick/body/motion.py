@@ -2,7 +2,7 @@
 
 Overview
     Composes the head pose every tick from a resting look direction, the
-    speech sway (`sway.py`, offsets timed to the speaker audio) and Bobby's own expressions
+    speech sway (`sway.py`, offsets timed to the speaker audio) and Banana's own expressions
     (`expression.py`), keeps the antennas at their commanded pose, and reads the antennas back
     for touch detection. Everyone else only
     enqueues `MotionCommand`s (invariant 10). A controller (the dashboard's Robot tab) can take
@@ -11,11 +11,11 @@ Overview
 Design
     A dedicated daemon thread at ~30 Hz. Look targets ease in with a critically damped smoothing
     whose time constant comes from the requested duration. There is no idle breathing: the owner
-    retired the 0.2 Hz head bob (block #80) — an idle Bobby looks around instead (`interaction`).
+    retired the 0.2 Hz head bob (block #80) — an idle Banana looks around instead (`interaction`).
     **Expressions** are offset curves added after the look's easing, in three
     layers that sum: `state` (thinking: held until stopped, chains to its next state), `beat`
     (small automatic motions: acknowledgements, backchannel nods, the beat nod the owner adds on
-    a phrase onset of Bobby's own speech, which the sway DSP reports) and `express` (what the
+    a phrase onset of Banana's own speech, which the sway DSP reports) and `express` (what the
     agent or the dashboard asks for). A new expression on a busy layer fades the old one out in
     0.15 s; intensities are multiplied by `energy` (the household's expressiveness × the
     reply's style) when they start, and the sway by the same energy every tick. Antenna offsets
@@ -23,7 +23,7 @@ Design
     touch detector pauses while an expression drives them. The head never stops looking at its
     target: an expression is an offset, and `state.gaze_held` tells the face servo to wait
     while an expression on the `express` layer turns the head (the thinking state keeps the
-    eyes on the person since block #80, so the servo keeps tracking while Bobby thinks). The SDK's `play_move()` (which
+    eyes on the person since block #80, so the servo keeps tracking while Banana thinks). The SDK's `play_move()` (which
     blocked this thread and played a sound effect) is not used any more (block #50). Attention (DoA turns, face
     tracking) is decided in `interaction` and expressed through `look()` / `track_face()`.
     Manual mode drops (and counts) unmarked commands, eases the height and
@@ -91,7 +91,7 @@ EXPRESSION_REPLACE_FADE_S = 0.15  # a new expression on a busy layer: the old on
 GAZE_HOLD_DEG = 3.0  # an expression turning the head this far holds the face servo
 MOVING_MIN_DEG = 6.0  # an expression or beat this big is motion (the motors are heard)
 LAYERS = ("state", "beat", "express")
-SPEECH_BEAT = "emphasis"  # the beat nod on a phrase onset of Bobby's own speech
+SPEECH_BEAT = "emphasis"  # the beat nod on a phrase onset of Banana's own speech
 SPEECH_BEAT_GAP_S = 2.2
 SPEECH_BEAT_CHANCE = 0.55  # at energy 1.0; scaled by the energy, at most 0.9
 
@@ -368,7 +368,7 @@ class MotionOwner(threading.Thread):
         return any(p.spec.moves_antennas for p in (*self._plays.values(), *self._fading))
 
     def _speech_beat(self, now: float) -> None:
-        """A phrase of Bobby's speech starts: sometimes a small beat nod with it."""
+        """A phrase of Banana's speech starts: sometimes a small beat nod with it."""
         if now - self._last_speech_beat < SPEECH_BEAT_GAP_S or self.state.manual:
             return
         self._last_speech_beat = now

@@ -1,7 +1,7 @@
-/* sidekick dashboard — Bobby's service (PLAN.md blocks #82–#87): the state pill by the name and
+/* sidekick dashboard — Banana's service (PLAN.md blocks #82–#87): the state pill by the name and
    its panel (Start, or Restart and Stop), the blocking start dialog that ticks every step and the
    module checks under it, toasts for what happens with no dialog open (a start at boot that
-   failed), and the stopped look of the pages (Live's "Bobby is stopped", runtime-only controls
+   failed), and the stopped look of the pages (Live's "Banana is stopped", runtime-only controls
    disabled). The state arrives with the 1 Hz health poll (dashboard_app.js calls `update`);
    while a start runs the dialog polls /api/service four times a second. A stop shows no dialog
    (the owner): the pill says stopping, then stopped. */
@@ -91,7 +91,7 @@
   function renderDialog() {
     const s = status, t = s && s.transition;
     if (!t || t.action !== "start" || t.started_at < openedAt - 2) {  // a restart: stopping first
-      $("start-title").textContent = "Restarting Bobby";
+      $("start-title").textContent = "Restarting Banana";
       $("start-sub").textContent = "stopping first…";
       $("start-steps").innerHTML = "";
       $("start-error").hidden = true;
@@ -100,7 +100,7 @@
     }
     const done = t.finished_at != null && !s.busy;
     const took = ((t.finished_at || Date.now() / 1000) - t.started_at).toFixed(1);
-    $("start-title").textContent = !done ? "Starting Bobby" : t.ok ? "Bobby is running" : "Bobby did not start";
+    $("start-title").textContent = !done ? "Starting Banana" : t.ok ? "Banana is running" : "Banana did not start";
     $("start-sub").textContent = `started ${clock(t.started_at)} ${BY[t.by] || t.by} · ${took} s`;
     $("start-steps").innerHTML = (t.steps || []).map(stepRow).join("");
     const err = $("start-error");
@@ -141,7 +141,7 @@
     const card = $("live-stopped");
     card.hidden = !stopped;
     if (stopped) {
-      card.querySelector("b").textContent = s.state === "stopping" ? "Bobby is stopping…" : "Bobby is stopped";
+      card.querySelector("b").textContent = s.state === "stopping" ? "Banana is stopping…" : "Banana is stopped";
       card.querySelector("[data-service-start]").disabled = s.state === "stopping";
       $("live-stopped-dot").className = `svc-dot ${tone(s)}`;
       $("live-stopped-sub").textContent = sinceLine(s);
@@ -157,9 +157,9 @@
     const busy = s.busy || s.state === "starting" || s.state === "stopping";
     document.querySelectorAll("#service-card [data-service-start]").forEach((b) => { b.hidden = s.state === "running"; b.disabled = busy; });
     document.querySelectorAll("#service-card [data-service-restart], #service-card [data-service-stop]").forEach((b) => { b.hidden = s.state !== "running"; b.disabled = busy; });
-    // runtime-only controls: off while Bobby is stopped; given back exactly as found
+    // runtime-only controls: off while Banana is stopped; given back exactly as found
     document.querySelectorAll("[data-needs-service]").forEach((el) => {
-      if (s.state !== "running") { if (!el.disabled) { el.disabled = true; el.dataset.svcOff = "1"; el.title = "Bobby is stopped"; } }
+      if (s.state !== "running") { if (!el.disabled) { el.disabled = true; el.dataset.svcOff = "1"; el.title = "Banana is stopped"; } }
       else if (el.dataset.svcOff) { el.disabled = false; delete el.dataset.svcOff; el.removeAttribute("title"); }
     });
   }
@@ -178,7 +178,7 @@
     if (t && t.action === "start" && t.ok === false && t.finished_at && !$("start-sheet").open && toasted !== t.started_at) {
       toasted = t.started_at;
       const bad = (t.steps || []).flatMap((x) => (x.items || []).map((it) => ({ ...it, tab: it.tab || x.tab }))).find((it) => it.level === "bad");
-      toast(`Bobby did not start: ${t.error}`, "bad", bad ? bad.tab : "system");
+      toast(`Banana did not start: ${t.error}`, "bad", bad ? bad.tab : "system");
     }
     if (s.state === "running" && before && wasState !== "running" && window.SidekickLive && window.SidekickLive.reloadCamera) window.SidekickLive.reloadCamera();
     wasState = s.state;

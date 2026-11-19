@@ -1,7 +1,7 @@
 """sidekick.agent.memory — the memory pyramid's stores: L2 facts, L1 episodes, digests
 
 Overview
-    `memory_v1.db` keeps what Bobby takes from the conversations (blocks #66 / #70): **facts**
+    `memory_v1.db` keeps what Banana takes from the conversations (blocks #66 / #70): **facts**
     (L2) — one short sentence each about a contact or the household, with where it came from —,
     **episodes** (L1) — one per conversation: title, summary, follow-ups, participants — and
     **digests**, a scope's facts condensed once they no longer fit the prompt. L0 is the

@@ -21,24 +21,59 @@ def spotter():
 
 def test_name_spotting_across_languages():
     s = spotter()
-    assert s.match("BOBBY").hit
-    m = s.match("Bobby，今日天氣點呀")
-    assert m.hit and m.alias == "bobby" and m.remainder == "今日天氣點呀"
-    m = s.match("波比呀，幫我開燈")
-    assert m.hit and m.remainder == "幫我開燈"
-    assert s.match("Bobby，今日天氣點呀？").remainder == "今日天氣點呀？"
-    assert s.match("今日天氣點呀 Bobby").remainder == "今日天氣點呀"
-    assert s.match("BOBY 今日天气点呀").remainder == "今日天气点呀"
-    assert s.match("boby").hit and s.match("Bobbie，你好").remainder == "你好"
-    assert s.match("BO比I 可唔可以講故事").remainder == "可唔可以講故事"
-    assert s.match("BOB 比可唔可以講故事").remainder == "可唔可以講故事"
-    assert s.match("Bobby 比較好").remainder == "比較好"
-    assert s.match("宝比你好").hit
-    assert s.match("hey bob, what time is it").hit
-    assert not s.match("今日天氣好好").hit
+    assert s.match("BANANA").hit
+    m = s.match("Banana，今天天气怎么样")
+    assert m.hit and m.alias == "banana" and m.remainder == "今天天气怎么样"
+    m = s.match("巴娜娜呀，帮我开灯")
+    assert m.hit and m.remainder == "帮我开灯"
+    assert s.match("Banana，今天天气怎么样？").remainder == "今天天气怎么样？"
+    assert s.match("今天天气怎么样 Banana").remainder == "今天天气怎么样"
+    # the spellings SenseVoice really wrote (block #94) are aliases, matched as written
+    assert s.match("BANANNA 今天天气怎么样").remainder == "今天天气怎么样"
+    assert s.match("ANANNA 今天天气怎么样").remainder == "今天天气怎么样"
+    assert s.match("banaa").hit and s.match("BNAA").hit
+    assert s.match("你好 PAANANNA").remainder == "你好"
+    assert s.match("Banana 比较好").remainder == "比较好"
+    assert s.match("hey banana, what time is it").hit
+    assert not s.match("今天天气很好").hit
+    assert not s.match("我想吃香蕉").hit  # the fruit in Chinese is not the name
     assert not s.match("the baby is sleeping").hit
     assert s.match("").hit is False
-    assert s.without_name("今日天氣好好") == "今日天氣好好"
+    assert s.without_name("今天天气很好") == "今天天气很好"
+
+
+def test_only_the_name_itself_is_matched_loosely_and_word_by_word():
+    """Block #94: with every alias matched loosely, "ananna" took "NANNA is not coming" and
+    "banaa" took "Panama", "cabana" and "nana"; 「把娜娜」 would have taken 「娜娜」; and windows
+    sliding over the text without its spaces found a "banana" in "a banner and a"."""
+    s = spotter()
+    m = s.match("VANANA what's the weather today")  # a spelling nobody has seen: the name, loosely
+    assert m.hit and m.alias == "banana" and 0.8 <= m.score < 1.0
+    assert m.remainder == "what's the weather today"  # the word goes, the spaces stay
+    assert s.match("你好 VANANA").remainder == "你好"
+    assert s.match("VANANA，今天天气怎么样？").remainder == "今天天气怎么样？"
+    assert s.match("我想跟 VANANA 说句话").remainder == "我想跟 Banana 说句话"  # inside: renamed
+    assert s.match("BAANA 给我讲个故事吧").remainder == "给我讲个故事吧"
+    for text in (
+        "NANNA IS NOT COMING TODAY",
+        "NANA",
+        "THE PANAMA CANAL IS LONG",
+        "WE STAYED IN A CABANA NEAR HAVANA",
+        "HANNAH AND SUSANNA ORDERED A PIANO FROM VIENNA",
+        "THE CANTINA SENT A BANNER AND A BANDAGE",
+        "HER UNCLE MOVED FROM MONTANA TO INDIANA",
+        "娜娜今天不来了",
+        "把那个拿来",
+        "巴拿马运河很长",
+        "爸爸那天拿了一个苹果",
+        "BB",  # the first name's trap (block #89): a parent calling a child
+        "BONAA",  # too far from the name, and not an alias
+    ):
+        assert not s.match(text).hit, text
+    # a short name is never matched loosely: two of three letters score 0.8
+    short = NameSpotter("Bob", ["bob"], 0.8)
+    assert short.match("bob 你好").hit and not short.match("听到啦 BB").hit
+    assert not short.match("about the robot").hit
 
 
 def test_engagement_wake_name_touch_timeout_and_closing():
@@ -50,7 +85,7 @@ def test_engagement_wake_name_touch_timeout_and_closing():
     d = m.on_segment(10.0, 1.0, 0.1, s.match("今日天氣好好"), None, "今日天氣好好")
     assert not d.accept and d.reason == "no wake name" and m.state == InteractionState.IDLE
     # wake name opens a session and strips the name
-    d = m.on_segment(11.0, 1.5, 0.1, s.match("Bobby 今日天氣點呀"), None, "Bobby 今日天氣點呀")
+    d = m.on_segment(11.0, 1.5, 0.1, s.match("Banana 今日天氣點呀"), None, "Banana 今日天氣點呀")
     assert d.accept and d.trigger == "wake_name" and d.text == "今日天氣點呀"
     assert m.state == InteractionState.ENGAGED and m.session is not None
     # follow-up from the same direction needs no name; other direction is rejected
@@ -80,7 +115,7 @@ def test_engagement_wake_name_touch_timeout_and_closing():
     assert (
         tv.on_segment(1.0, 1.0, -0.8, s.match("有人講嘢"), None, "有人講嘢").reason == "tv sector"
     )
-    assert tv.on_segment(2.0, 1.0, -0.8, s.match("Bobby"), None, "Bobby").accept
+    assert tv.on_segment(2.0, 1.0, -0.8, s.match("Banana"), None, "Banana").accept
     # asleep: nothing happens
     tv.set_awake(False, 3.0)
     assert tv.state == InteractionState.SLEEPING and not tv.on_touch(4.0).accept
@@ -89,10 +124,10 @@ def test_engagement_wake_name_touch_timeout_and_closing():
 
 
 def test_engagement_session_speaker_follows_the_voice_not_the_wake_clip():
-    """Block #80: the short "Bobby" has no identity; unnamed ids defer to the direction."""
+    """Block #80: a short call of the name has no identity; unnamed ids defer to the direction."""
     m = EngagementMachine(ConfigInteraction(), awake=True)
     s = spotter()
-    d = m.on_segment(10.0, 0.8, 0.0, s.match("Bobby"), None, "Bobby")
+    d = m.on_segment(10.0, 0.8, 0.0, s.match("Banana"), None, "Banana")
     assert d.accept and m.session is not None and m.session.speaker is None
     assert m.on_segment(12.0, 2.4, 0.05, None, "person:25", "今日天氣點呀").accept
     assert m.session.speaker == "person:25"
@@ -131,7 +166,7 @@ def test_barge_in_two_stages():
     assert b.on_speech_end(2.3, 0.3, "停").action == "stop"
     b.reset()
     b.on_speech_start(3.0, True)
-    assert b.on_speech_end(3.3, 0.3, "Bobby").action == "stop"
+    assert b.on_speech_end(3.3, 0.3, "Banana").action == "stop"
     b.reset()
     assert b.on_touch().action == "stop"
     assert b.is_backchannel("好") and b.is_backchannel("ok") and not b.is_backchannel("等一下先")

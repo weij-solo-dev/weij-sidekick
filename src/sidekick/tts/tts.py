@@ -3,7 +3,7 @@
 Overview
     `primary` is the streaming MiniMax WebSocket backend used by the voice pipeline; `fallback`
     is the HTTP backend. `infer` is traced; `open_stream` hands the live session to the caller;
-    `synthesize` returns one clip for callers that only need audio (Bobby's own voice enrolment).
+    `synthesize` returns one clip for callers that only need audio (Banana's own voice enrolment).
 Design
     Same shape as `LLMSession` / `ASRSession`. `open_stream` raises when the slot's backend has
     no streaming support so the pipeline can fall back deliberately. `synthesize` prefers the

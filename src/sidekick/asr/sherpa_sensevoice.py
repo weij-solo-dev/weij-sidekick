@@ -2,7 +2,7 @@
 
 Overview
     On-host ASR with one model for Cantonese, Mandarin, English, Japanese and Korean. It has two
-    jobs: transcribe every IDLE speech segment locally so the wake name "Bobby" can be spotted
+    jobs: transcribe every IDLE speech segment locally so the wake name "Banana" can be spotted
     without any cloud call (invariant 17), and serve as the fallback / shadow transcript next to
     the cloud ASR for quality comparison on the dashboard.
 Design

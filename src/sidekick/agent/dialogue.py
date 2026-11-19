@@ -209,7 +209,7 @@ class DialogueStore:
             elif row["reply_to"] and row["reply_to"] in assigned:
                 conversation = assigned[row["reply_to"]]
             elif row["role"] == "assistant" and row["channel"] == "voice":
-                conversation = place("voice", row["ts"])  # Bobby spoke first in the room
+                conversation = place("voice", row["ts"])  # Banana spoke first in the room
             else:
                 conversation = ""  # a job's steps, a delivery to a chat we cannot tell
             assigned[row["id"]] = conversation

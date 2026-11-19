@@ -144,7 +144,7 @@ async def test_adapter_poll_send_and_stale_token(tmp_path):
 
     adapter.handler = handler
     fake.updates = [
-        inbound("user777", "Bobby 你好"),
+        inbound("user777", "Banana 你好"),
         inbound("stranger", "hi", token="ctx-s"),
         {
             "from_user_id": "user777",
@@ -157,7 +157,7 @@ async def test_adapter_poll_send_and_stale_token(tmp_path):
         len(received) == 1
         and received[0].channel == "wechat"
         and received[0].speaker == "wx:user777"
-        and received[0].text == "Bobby 你好"
+        and received[0].text == "Banana 你好"
     )
     assert state.buf.startswith("buf-") and state.context_tokens["user777"] == "ctx-1"
     assert (

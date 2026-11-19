@@ -72,7 +72,7 @@ LANGUAGE_NAMES = {
     "en": "English",
 }
 
-WRITER_ROLE = """You keep the long-term memory of Bobby, a small robot butler living with one household.
+WRITER_ROLE = """You keep the long-term memory of Banana, a small robot butler living with one household.
 You read one finished conversation and decide what is worth remembering. Write the title, the
 summary, the follow-ups and the facts in {language}; never mention the room or the app in them.
 
@@ -83,19 +83,19 @@ title: at most 40 characters — what the conversation was about.
 summary: at most 300 characters — what happened and what was agreed, naming the people (the
 participants are listed below; an unnamed person is "{visitor}"). Plain facts, no judgement.
 Leave health, money and relationship details out of the summary (they may only be facts).
-followups: a question Bobby could ask after a dated event the conversation mentions ("睇牙順唔順利？"
+followups: a question Banana could ask after a dated event the conversation mentions ("睇牙順唔順利？"
 after the dentist), due on the day of the event or the day after:
 {{"who": "<participant id or household>", "text": "<the question>", "due": "YYYY-MM-DD"}}.
 Not reminders — those are scheduled separately. Usually none.
 facts: what will still be useful in weeks or months, said by a named participant — who people
 are and how they are related, likes and dislikes, routines and schedules, important dates,
-health, how they like Bobby to talk. Each one:
+health, how they like Banana to talk. Each one:
 {{"op": "add" or "supersede", "replaces": "<known fact id>" or null, "about": "<participant id>" or
 "household" or "<name of someone else>", "teller": "<id of the participant who said it>",
 "category": "identity|style|preference|routine|date|health|money|relationship|other",
 "text": "<one short sentence in the third person, with the person's name>", "valid_until": "YYYY-MM-DD" or null}}
 Rules for facts:
-- Only what the people said or clearly showed; never what Bobby said or guessed.
+- Only what the people said or clearly showed; never what Banana said or guessed.
 - One fact per sentence, third person, with the name ("爸爸鍾意飲凍檸茶"), never 我 / 你 / I / you;
   each must make sense on its own months later — skip vague ones.
 - Something said about another person keeps who said it ("爸爸話媽媽鍾意榴槤"); a household
@@ -104,7 +104,7 @@ Rules for facts:
   are worth keeping (they stay private): "爸爸膝頭哥痛，呢排唔想行山".
 - Requests and reminders are not facts ("提我訂位" belongs to the schedule).
 - If a known fact (listed below) already says it, leave it out; if it changed, "supersede" it.
-- Skip greetings, small talk, jokes, questions Bobby answered, one-off requests already done,
+- Skip greetings, small talk, jokes, questions Banana answered, one-off requests already done,
   and anything about unnamed visitors.
 - Dates: work them out with the calendar below ("下個禮拜三" is Wednesday of next week).
   Birthdays and anniversaries come back every year: day and month, no year, no valid_until.
@@ -278,11 +278,11 @@ class MemoryWriter:
             elif row.role == "assistant":
                 text = PERFORMANCE_TAG.sub("", row.content).strip()
                 own = " (on its own initiative)" if row.meta.get("delivery") else ""
-                lines.append(f"[{at}] Bobby{own}: {text}")
+                lines.append(f"[{at}] Banana{own}: {text}")
             elif row.role == "tool" and row.meta.get("tool"):
                 arguments = str(row.meta.get("arguments") or "")[:100]
                 lines.append(
-                    f"[{at}] (Bobby used {row.meta['tool']} {arguments} → "
+                    f"[{at}] (Banana used {row.meta['tool']} {arguments} → "
                     f"{'ok' if row.meta.get('ok') else 'failed'})"
                 )
         text = "\n".join(lines)
@@ -332,7 +332,7 @@ class MemoryWriter:
         where = (
             f"a private chat with {labels[private_to]}"
             if private and private_to
-            else "spoken with Bobby in person"
+            else "spoken with Banana in person"
             if info["channel"] == "voice"
             else f"a {info['channel']} group chat"
         )

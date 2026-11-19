@@ -1,15 +1,15 @@
-"""sidekick.service.service — ServiceSession: start and stop Bobby inside the process
+"""sidekick.service.service — ServiceSession: start and stop Banana inside the process
 
 Overview
     The process — started and closed by the CLI (`sidekick startup` / `sidekick close`) — hosts
     the console for its whole life: the dashboard, every data page (contacts, memory, jobs,
-    Replay, traces, logs) and readiness. The **service** is everything Bobby does, and the
+    Replay, traces, logs) and readiness. The **service** is everything Banana does, and the
     dashboard's power control starts and stops it here (blocks #82–#87). A start re-reads the
     config, checks the prerequisites (the readiness list's configuration rows; any `bad` row and
     nothing starts), makes sure the on-host models are on disk, binds every module to the fresh
     spec and then brings the modules up one by one, each proving it works: the module's own
     `check()` items become the dialog's sub-lines. A stop takes them down in reverse and unbinds
-    the service backends, so a stopped Bobby holds little memory (the robot is turned off by the
+    the service backends, so a stopped Banana holds little memory (the robot is turned off by the
     body's own `stop`). The owner's last choice is remembered in `service.json`, so restarting the
     process (or the Mac) does not undo a Stop.
 Design
@@ -78,7 +78,7 @@ async def _call(method: Callable[[], Any]) -> Any:
 
 
 class ServiceSession:
-    """Starts, stops and reports Bobby inside the process."""
+    """Starts, stops and reports Banana inside the process."""
 
     shared: ClassVar[ServiceSession]
 
@@ -126,14 +126,14 @@ class ServiceSession:
     # ------------------------------------------------------------------ lifecycle
 
     async def start(self) -> None:
-        """The console's start: bind the modules, then start Bobby when it was left running.
+        """The console's start: bind the modules, then start Banana when it was left running.
 
-        The bound modules' stores serve the dashboard while Bobby is stopped.
+        The bound modules' stores serve the dashboard while Banana is stopped.
         """
         self._read_choice()
         try:
             self._prepare()
-        except Exception as exc:  # a broken config stops Bobby, never the dashboard
+        except Exception as exc:  # a broken config stops Banana, never the dashboard
             Log.error(f"service: the modules could not be set up: {exc!r}")
         wanted = self.autostart if self.autostart is not None else self.wanted == "running"
         Log.info(f"service: {'starting' if wanted else 'left stopped'} (choice: {self.wanted})")
@@ -399,7 +399,7 @@ class ServiceSession:
 
     @property
     def running(self) -> bool:
-        """Whether Bobby is up."""
+        """Whether Banana is up."""
         return self.state == "running"
 
     def status(self) -> dict[str, Any]:

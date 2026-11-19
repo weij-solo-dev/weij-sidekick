@@ -4,7 +4,7 @@ Overview
     Decides, for every speech segment and touch, whether the robot is being talked to
     (invariant 17: nothing reaches cloud ASR before this says yes) and when a conversation ends
     (silence timeout, closing phrase, repeated `NO_REPLY`). It is pure logic over timestamps so
-    it is unit-tested without audio. The silence is counted from the moment Bobby stops talking;
+    it is unit-tested without audio. The silence is counted from the moment Banana stops talking;
     after a reply that ends with a question it is `answer_timeout_s` instead of
     `session_timeout_s` — a child thinking about 「你估下…？」 at the end of a story needs more
     than 8 s (block #89). Speech that began before the silence ran out is not silence: the
@@ -16,8 +16,8 @@ Design
     contacts are `other speaker`; anything else — no identity, an unnamed person on either side
     — is decided by the direction of arrival within the configured sector tolerance, and a
     known voice then replaces an unknown or unnamed session speaker (block #80: the session's
-    speaker used to be whoever the short "Bobby" clip was taken for, so every later sentence of
-    the same person was "someone else" and fell to a direction read in the silence after it).
+    speaker used to be whoever the short clip of the name was taken for, so every later sentence
+    of the same person was "someone else" and fell to a direction read in the silence after it).
     A segment that carries the name adopts its voice the same way: a session opened by the
     keyword stream has no speaker, and a stop by name used to be credited to a fresh guest.
     Speech from the TV sector never triggers without the wake name. The machine never touches
@@ -47,7 +47,7 @@ _ASKS = re.compile(r"[？?][\s」』”’）)\]]*(?:\[[^\]]*\][\s]*)*\W*$")
 
 
 def asks(reply: str) -> bool:
-    """Whether Bobby's reply ended by asking something."""
+    """Whether Banana's reply ended by asking something."""
     return bool(reply) and bool(_ASKS.search(reply.strip()))
 
 

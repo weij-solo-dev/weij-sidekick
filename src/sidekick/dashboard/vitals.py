@@ -1,7 +1,7 @@
 """sidekick.dashboard.vitals — host vital signs from the standard library (Live's System card)
 
 Overview
-    `HostVitals` measures what the Live page's System card says about the machine Bobby's
+    `HostVitals` measures what the Live page's System card says about the machine Banana's
     brain runs on: the load average against the core count, this process's resident memory,
     CPU share and threads, how late the event loop wakes up, and the Raspberry Pi's SoC
     temperature.

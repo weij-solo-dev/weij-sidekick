@@ -38,11 +38,11 @@ async def test_minimax_transcribe_sends_multipart_wav_and_language_header():
         model_part = next(p for p in parts if b'name="model"' in p)
         assert b"asr-1.0" in model_part
         return httpx.Response(
-            200, json={"text": "Bobby，今日天氣點呀", "duration": 1.5, "trace_id": "t"}
+            200, json={"text": "Banana，今日天氣點呀", "duration": 1.5, "trace_id": "t"}
         )
 
     result = await backend_with(handler).transcribe(AudioClip.silence(1.5), language="yue")
-    assert result.success and result.text.startswith("Bobby")
+    assert result.success and result.text.startswith("Banana")
     assert result.language == "yue" and result.duration_s == 1.5
     assert seen["language"] == "yue" and seen["auth"].startswith("Bearer ")
     assert abs(seen["clip"].duration_s - 1.5) < 1e-6 and seen["clip"].sample_rate == 16000

@@ -12,7 +12,7 @@
     const r = await fetch(path, opts);
     if (!r.ok) {
       const text = await r.text();
-      if (r.status === 409 && text.includes("Bobby is stopped") && window.SidekickService) window.SidekickService.toast("Bobby is stopped — start the service first", "warn", "system");
+      if (r.status === 409 && text.includes("Banana is stopped") && window.SidekickService) window.SidekickService.toast("Banana is stopped — start the service first", "warn", "system");
       throw new Error(`${r.status} ${text}`);
     }
     return r.json();
@@ -390,7 +390,7 @@
       dot("dot-record", worst(tabs.record, r && (r.state === "paused" || r.errors) ? "warn" : ""));
       ["voice", "contact", "channel", "extension", "system"].forEach((t) => dot(`dot-${t}`, tabs[t] || ""));
       if (window.SidekickService) window.SidekickService.update(h.service);
-      if (h.service && h.service.state !== "running") {  // Bobby is stopped: the runtime tabs are grey, a blocking prerequisite stays red
+      if (h.service && h.service.state !== "running") {  // Banana is stopped: the runtime tabs are grey, a blocking prerequisite stays red
         ["live", "voice", "body", "agent", "automation", "channel", "record", "extension"].forEach((t) => dot(`dot-${t}`, tabs[t] === "bad" ? "bad" : "off"));
       }
       const recordingLine = !r ? ["recording", "off", "dim"] : r.state === "recording" ? ["recording", `${fmt(r.hours, 1)} h · ${fmt(r.size_gb, 2)} GB · ${fmt(r.free_gb, 0)} GB free`, "ok"] : ["recording", `${r.state}${r.errors ? " · " + r.errors : ""} · ${fmt(r.free_gb, 0)} GB free`, "warn"];
@@ -482,7 +482,7 @@
     const raw = t.reply || "";
     const cues = [...raw.matchAll(CUE)].map((m) => `${m[1]}: ${m[2].trim()}`);
     const text = t.error ? `error: ${t.error}` : t.no_reply ? "NO_REPLY — the agent chose not to answer" : raw.replace(CUE, "").trim() || raw;
-    const meta = ["Bobby", t.ms != null ? `${secs(t.ms)}${t.first_ms != null ? ` · first words ${secs(t.first_ms)}` : ""}` : "", cues.join(", ")].filter(Boolean).map(esc).join(" · ");
+    const meta = ["Banana", t.ms != null ? `${secs(t.ms)}${t.first_ms != null ? ` · first words ${secs(t.first_ms)}` : ""}` : "", cues.join(", ")].filter(Boolean).map(esc).join(" · ");
     const tools = (t.tools || []).map((x, j) => `<button class="tag" data-test="${i}" data-call="${j}">${esc(x.agent !== "main" ? `${x.agent} · ${x.name}` : x.name)}</button>`).join("");
     return `<div class="msg bot"><div class="avatar">B</div><div class="body"><div class="bubble${t.error ? " bad" : t.no_reply ? " dim" : ""}">${esc(text)}</div><div class="meta">${meta}</div>${tools ? `<div class="tags">${tools}</div>` : ""}</div></div>`;
   }
@@ -566,7 +566,7 @@
         + `<div class="facts">${live.map((f) => factRow(f, episodes)).join("") || '<div class="dim" style="font-size:13px">no current fact</div>'}</div>`
         + (gone.length ? `<details class="retired-list"><summary>superseded or expired (${gone.length})</summary><div class="facts">${gone.map((f) => factRow(f, episodes)).join("")}</div></details>` : "")
         + "</div>";
-    }).join("") || `<div class="card"><div class="blank"><b>Nothing remembered yet.</b><p>Bobby writes each conversation into memory a few minutes after it ends (the room after ${memoryGap.voice} min of quiet, a chat after ${memoryGap.text} min): who said what about themselves and the household. Facts come only from named people — enroll the family on Contact.</p></div></div>`;
+    }).join("") || `<div class="card"><div class="blank"><b>Nothing remembered yet.</b><p>Banana writes each conversation into memory a few minutes after it ends (the room after ${memoryGap.voice} min of quiet, a chat after ${memoryGap.text} min): who said what about themselves and the household. Facts come only from named people — enroll the family on Contact.</p></div></div>`;
     // episodes by day
     const eps = memoryData.episodes.filter((e) => hit(e.title) || hit(e.summary) || e.participants.some((p) => hit(who(p))));
     let day = "";
@@ -614,7 +614,7 @@
     const e = await api(`/api/agent/episodes/${encodeURIComponent(id)}`);
     const rows = (e.rows || []).map((r) => r.role === "tool"
       ? `<div><time>${hm(r.ts)}</time><span class="who">tool</span><span class="tool">${esc(r.tool || "")} ${r.ok ? "ok" : "failed"} · ${esc(String(r.content || "").slice(0, 120))}</span></div>`
-      : `<div><time>${hm(r.ts)}</time><span class="who">${esc(r.role === "user" ? who(r.speaker) : "Bobby")}</span><span>${esc(r.role === "user" ? r.content : r.content.replace(/\[\s*(express|style)\s*:[^\]]*\]\s*/gi, ""))}</span></div>`).join("");
+      : `<div><time>${hm(r.ts)}</time><span class="who">${esc(r.role === "user" ? who(r.speaker) : "Banana")}</span><span>${esc(r.role === "user" ? r.content : r.content.replace(/\[\s*(express|style)\s*:[^\]]*\]\s*/gi, ""))}</span></div>`).join("");
     const facts = (e.facts || []).map((f) => `<div>· ${esc(f.text)} <span class="dim">(${esc(who(f.scope))}, ${esc(f.category)}${f.visibility === "private" ? ", private" : ""}${f.retired_ts ? ", superseded" : ""})</span></div>`).join("");
     openSheet({
       title: e.title || "(not written)",
@@ -736,7 +736,7 @@
       const target = m.command ? [m.command, ...m.args].join(" ") : m.url;
       return `<button class="item" data-mcp="${esc(m.name)}"><span class="top"><i class="st ${state}"></i><span class="name">${esc(m.name)}</span></span><span class="desc">${esc(m.error || target)}</span><span class="tags">${tag(m.transport)}${tag(plural(m.tools.length, "tool"))}${m.origin !== "user" ? tag(originLabel(m.origin)) : ""}${m.enabled ? "" : tag("off")}</span></button>`;
     });
-    $("mcp-board").innerHTML = cards.join("") || `<div class="blank"><b>No MCP server yet</b><p>An MCP server is another program whose tools Bobby can call — started here as a stdio command (<code>npx …</code>, <code>uvx …</code>) or reached at an HTTP URL. Bobby can also add one when asked (<code>mcp_add</code>, which asks first).</p><button class="primary" data-new-mcp>Add an MCP server</button></div>`;
+    $("mcp-board").innerHTML = cards.join("") || `<div class="blank"><b>No MCP server yet</b><p>An MCP server is another program whose tools Banana can call — started here as a stdio command (<code>npx …</code>, <code>uvx …</code>) or reached at an HTTP URL. Banana can also add one when asked (<code>mcp_add</code>, which asks first).</p><button class="primary" data-new-mcp>Add an MCP server</button></div>`;
     $("mcp-board").querySelectorAll("[data-mcp]").forEach((el) => el.addEventListener("click", () => openMcp(el.dataset.mcp)));
     $("mcp-board").querySelectorAll("[data-new-mcp]").forEach((el) => el.addEventListener("click", newMcp));
     $("mcp-new").hidden = !mcpData.length;  // the empty board carries its own button
@@ -803,7 +803,7 @@
         sub: `Agent core · answers every turn · ${plural(a.turns, "turn")} since start`,
         tags: tag("main agent", "acc") + tag(`${a.llm_slot} slot`) + (a.hedge_after_s > 0 ? tag(`asks again after ${a.hedge_after_s} s`) : tag("no second request")),
         body: `<div><h4>What it does</h4><p>Every message from the room and the chats comes to it: it answers in a sentence or two, uses its tools, and hands longer or specialised work to a subagent with <code>delegate</code>. Only it schedules reminders and runs jobs.</p></div>
-          <div><h4>Its rules</h4><p class="prompt">${esc(a.role)}</p><small>written in the code; each turn adds the skills, the subagents and what Bobby remembers about the speaker</small></div>
+          <div><h4>Its rules</h4><p class="prompt">${esc(a.role)}</p><small>written in the code; each turn adds the skills, the subagents and what Banana remembers about the speaker</small></div>
           ${gets}
           <div><h4>Settings · applied at once</h4><div data-params="agent.main"></div></div>`,
       });
@@ -871,7 +871,7 @@
     $("skills-count").textContent = `${skillsData.length}`;
     count("skills", skillsData.length);
     const cards = skillsData.map((s) => `<button class="item" data-skill="${esc(s.name)}"><span class="top"><span class="name">${esc(s.name)}</span></span><span class="desc">${esc(s.description)}</span><span class="tags">${tag(originLabel(s.origin))}${s.enabled ? "" : tag("off")}${tag(`${s.body.length} chars`)}</span></button>`);
-    $("skills-board").innerHTML = cards.join("") || `<div class="blank"><b>No skill yet</b><p>A skill is a Markdown note that tells Bobby how to do one thing: its description goes into the prompt, and Bobby reads the rest with <code>skill_read</code> when it needs it.</p><button class="primary" data-new-skill>New skill</button></div>`;
+    $("skills-board").innerHTML = cards.join("") || `<div class="blank"><b>No skill yet</b><p>A skill is a Markdown note that tells Banana how to do one thing: its description goes into the prompt, and Banana reads the rest with <code>skill_read</code> when it needs it.</p><button class="primary" data-new-skill>New skill</button></div>`;
     $("skills-board").querySelectorAll("[data-skill]").forEach((el) => el.addEventListener("click", () => openSkill(el.dataset.skill)));
     $("skills-board").querySelectorAll("[data-new-skill]").forEach((el) => el.addEventListener("click", () => openSkill(null)));
     $("skill-new").hidden = !skillsData.length;
@@ -930,7 +930,7 @@
   $("tg-token-save").addEventListener("click", async () => {
     const token = $("tg-token").value.trim();
     if (!token) return;
-    try { await post("/api/config/credentials", { provider: "telegram", values: { bot_token: token } }); $("tg-token").value = ""; $("telegram-code").innerHTML = 'token saved · runs from Bobby\'s next start · <a href="#" data-service-restart>Restart now</a>'; loadChannels(); } catch (e) { $("telegram-code").textContent = e.message; }
+    try { await post("/api/config/credentials", { provider: "telegram", values: { bot_token: token } }); $("tg-token").value = ""; $("telegram-code").innerHTML = 'token saved · runs from Banana\'s next start · <a href="#" data-service-restart>Restart now</a>'; loadChannels(); } catch (e) { $("telegram-code").textContent = e.message; }
   });
   // WeChat: the iLink QR login on the page (the CLI no longer has one, block #87)
   let wxTimer = null;
@@ -966,7 +966,7 @@
     $("enroll-contact").innerHTML = snap.contacts.filter((c) => c.id !== "self").map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("");
     const people = snap.people || [];
     const ago = (ts) => { const s = Date.now() / 1000 - ts; return s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${(s / 3600).toFixed(1)} h ago` : `${(s / 86400).toFixed(1)} d ago`; };
-    $("people").innerHTML = people.map((p) => `<tr><td><b>${esc(guestName(p.id))}</b><br><small>${esc(p.id)}</small></td><td>${p.utterances} over ${p.sessions} session(s)</td><td>${p.face_samples}</td><td>${ago(p.last_seen_ts)}</td><td>${p.declined_ts ? '<span class="warn">declined</span>' : p.ready_ts ? '<span class="ok">ready</span>' : p.asked_ts ? "asked" : "collecting"}</td><td><input data-pname="${esc(p.id)}" placeholder="name" style="width:120px"> <button data-promote="${esc(p.id)}">Befriend</button> <button data-forget-person="${esc(p.id)}">Forget</button></td></tr>`).join("") || "<tr><td colspan=6 class=dim>nobody unnamed yet — Bobby collects voices and faces while people talk to it</td></tr>";
+    $("people").innerHTML = people.map((p) => `<tr><td><b>${esc(guestName(p.id))}</b><br><small>${esc(p.id)}</small></td><td>${p.utterances} over ${p.sessions} session(s)</td><td>${p.face_samples}</td><td>${ago(p.last_seen_ts)}</td><td>${p.declined_ts ? '<span class="warn">declined</span>' : p.ready_ts ? '<span class="ok">ready</span>' : p.asked_ts ? "asked" : "collecting"}</td><td><input data-pname="${esc(p.id)}" placeholder="name" style="width:120px"> <button data-promote="${esc(p.id)}">Befriend</button> <button data-forget-person="${esc(p.id)}">Forget</button></td></tr>`).join("") || "<tr><td colspan=6 class=dim>nobody unnamed yet — Banana collects voices and faces while people talk to it</td></tr>";
     document.querySelectorAll("[data-promote]").forEach((b) => b.addEventListener("click", async () => { const name = document.querySelector(`[data-pname="${b.dataset.promote}"]`).value.trim(); if (!name) return; try { await post(`/api/contacts/people/${encodeURIComponent(b.dataset.promote)}/promote`, { name }); loadContacts(); } catch (e) { alert(e.message); } }));
     document.querySelectorAll("[data-forget-person]").forEach((b) => b.addEventListener("click", async () => { await del(`/api/contacts/people/${encodeURIComponent(b.dataset.forgetPerson)}`); loadContacts(); }));
     document.querySelectorAll("[data-enroll]").forEach((b) => b.addEventListener("click", () => openEnroll(b.dataset.enroll, b.dataset.estep)));
@@ -974,7 +974,7 @@
     document.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => { if (confirm(`delete ${b.dataset.del}?`)) { await del(`/api/contacts/${encodeURIComponent(b.dataset.del)}`); loadContacts(); } }));
   }
   const LANG_OPTS = { "": "household default", yue: "廣東話 Cantonese", zh: "普通話 Mandarin", en: "English" };
-  const PROMPTS = { yue: ["我係屋企人，Bobby 你記住我把聲。", "今日天氣幾好，我哋出去行下啦。", "聽日朝早八點提我食藥，唔該。"], zh: ["我是家里人，Bobby 请记住我的声音。", "今天天气不错，我们出去走走吧。", "明天早上八点提醒我吃药，谢谢。"], en: ["I'm part of the household, Bobby, remember my voice.", "The weather is nice today, let's go for a walk.", "Remind me to take my pills at eight tomorrow morning."] };
+  const PROMPTS = { yue: ["我係屋企人，Banana 你記住我把聲。", "今日天氣幾好，我哋出去行下啦。", "聽日朝早八點提我食藥，唔該。"], zh: ["我是家里人，Banana 请记住我的声音。", "今天天气不错，我们出去走走吧。", "明天早上八点提醒我吃药，谢谢。"], en: ["I'm part of the household, Banana, remember my voice.", "The weather is nice today, let's go for a walk.", "Remind me to take my pills at eight tomorrow morning."] };
   let enroll = { id: null, step: "details", takes: [], faces: null };
   function openEnroll(id, step) {
     enroll = { id, step: step || (id ? "voice" : "details"), takes: [], faces: null };
@@ -1016,7 +1016,7 @@
       const lang = (c && c.language) || "yue";
       const prompts = PROMPTS[lang] || PROMPTS.yue;
       const n = enroll.takes.length;
-      body.innerHTML = `<p class="dim" style="margin:0">Stand within two metres, speak at normal volume. Each take records 4 seconds straight from Bobby's microphone; three takes make a good voice print.</p>
+      body.innerHTML = `<p class="dim" style="margin:0">Stand within two metres, speak at normal volume. Each take records 4 seconds straight from Banana's microphone; three takes make a good voice print.</p>
         <div class="prompt" id="e-prompt">${esc(prompts[Math.min(n, prompts.length - 1)])}</div>
         <div class="row"><span class="count" id="e-count">${n}/3</span><button class="primary" id="e-rec">Record take ${n + 1}</button><button id="e-skip">Skip to face →</button><button id="e-done">Done</button><span id="e-vres" class="dim"></span></div>
         <div class="takes" id="e-takes">${enroll.takes.map((tk, i) => `<span class="${tk.used ? "ok" : ""}">take ${i + 1}: ${tk.used ? `peak ${tk.peak_dbfs} dBFS` : "too short / quiet"}</span>`).join("")}</div>`;
@@ -1036,7 +1036,7 @@
       $("e-skip").addEventListener("click", () => { enroll.step = "face"; renderEnroll(); });
       $("e-done").addEventListener("click", closeEnroll);
     } else {
-      body.innerHTML = `<p class="dim" style="margin:0">Look at Bobby; the box shows what the detector sees (the image is brightened in a dark room). Capture takes five frames over two seconds.</p>
+      body.innerHTML = `<p class="dim" style="margin:0">Look at Banana; the box shows what the detector sees (the image is brightened in a dark room). Capture takes five frames over two seconds.</p>
         <div class="row" style="align-items:flex-start"><div class="preview"><img id="enroll-cam" src="/api/body/stream.mjpg?width=640&fps=6&t=${Date.now()}" alt="camera"><div class="cam-faces" id="enroll-faces"></div></div>
         <div><div class="row"><button class="primary" id="e-face">Capture 5 frames</button></div><div id="e-fres" class="dim"></div><div class="row"><button id="e-finish">Finish</button></div></div></div>`;
       $("e-face").addEventListener("click", async () => {

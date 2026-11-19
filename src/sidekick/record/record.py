@@ -155,7 +155,7 @@ class RecordSession:
             self.state = "stopped"
 
     def check(self) -> list[dict[str, Any]]:
-        """Readiness items: recording (advice only: Bobby talks without it) and free disk."""
+        """Readiness items: recording (advice only: Banana talks without it) and free disk."""
         if self.settings is None or not self.settings.enabled:
             return [{"id": "ring", "title": "recording", "level": "off", "detail": "off"}]
         status = self.cached_status()  # the disk figures; the state is the live one

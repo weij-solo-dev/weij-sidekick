@@ -86,7 +86,7 @@ class EngagementSession:
     speaker: str | None = None
     turns: int = 0
     no_reply_streak: int = 0
-    asked: bool = False  # Bobby's last reply ended with a question: wait longer for the answer
+    asked: bool = False  # Banana's last reply ended with a question: wait longer for the answer
 
 
 @dataclass(frozen=True, slots=True)

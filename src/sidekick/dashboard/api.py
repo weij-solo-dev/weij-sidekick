@@ -22,10 +22,10 @@ Design
     `BlockingIOError` (a test is running) → 409, `KeyError` → 404, `RuntimeError` (no body)
     → 409. The specific `/config/*` routes are declared before the generic section route so
     FastAPI matches them first.
-    Bobby's service (blocks #82–#87): `GET` / `POST /api/service`, the `service` block in
+    Banana's service (blocks #82–#87): `GET` / `POST /api/service`, the `service` block in
     `/api/health`; while it is stopped the runtime routes (say, test turns, the body and robot,
     frames, enrollment from the robot, the memory writer, the loopback check) answer 409
-    "Bobby is stopped" and writes only save (no MCP launch, no extension load, no backend
+    "Banana is stopped" and writes only save (no MCP launch, no extension load, no backend
     rebind). WeChat's QR login (`/channels/wechat/login`) and the daemon's log
     (`/logs?source=daemon`) moved here from the CLI.
 Depends on
@@ -97,7 +97,7 @@ class DashboardContext:
     started_at: float = field(default_factory=time.time)
     extra_health: Callable[[], dict[str, Any]] | None = None
     doctor: Any = None  # DoctorSession (readiness), see sidekick.doctor
-    service: Any = None  # ServiceSession (start / stop Bobby), see sidekick.service
+    service: Any = None  # ServiceSession (start / stop Banana), see sidekick.service
 
 
 # The config sections the generic route may write; `languages` and the credentials / slots have
@@ -338,7 +338,7 @@ class MemoryCreate(BaseModel):
 
 
 class ServiceAction(BaseModel):
-    """Start, stop or restart Bobby's service (the dashboard's power control)."""
+    """Start, stop or restart Banana's service (the dashboard's power control)."""
 
     action: Literal["start", "stop", "restart"]
 
@@ -400,9 +400,11 @@ def build_router(ctx: DashboardContext) -> APIRouter:
         return hit[1]
 
     def _running() -> None:
-        """Refuse a call that needs Bobby up while the service is stopped (409)."""
+        """Refuse a call that needs Banana up while the service is stopped (409)."""
         if ctx.service is not None and not ctx.service.running:
-            raise HTTPException(status_code=409, detail="Bobby is stopped: start the service first")
+            raise HTTPException(
+                status_code=409, detail="Banana is stopped: start the service first"
+            )
 
     @router.get("/service")
     def service_status() -> dict[str, Any]:
@@ -1234,7 +1236,7 @@ def build_router(ctx: DashboardContext) -> APIRouter:
                     wechat.allow_user_ids.append(wechat.user_id)
             _save_spec(spec)
             await _wx_close()
-            out["note"] = "logged in · WeChat runs from Bobby's next start"
+            out["note"] = "logged in · WeChat runs from Banana's next start"
             Log.info(f"wechat login saved: bot_id={result.get('bot_id')}")
         elif status in ("verify_code_blocked", "binded_redirect"):
             await _wx_close()

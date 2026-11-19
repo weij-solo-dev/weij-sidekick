@@ -4,6 +4,9 @@ from .catalog import load_catalog, provider
 from .config import ConfigProbeOutcome, ConfigSession
 from .schemas import (
     LANGUAGES,
+    ROBOT_ALIASES,
+    ROBOT_KEYWORDS,
+    ROBOT_NAME,
     SERVICES,
     SLOT_NAMES,
     ConfigAgents,
@@ -27,6 +30,9 @@ from .schemas import (
 
 __all__ = [
     "LANGUAGES",
+    "ROBOT_ALIASES",
+    "ROBOT_KEYWORDS",
+    "ROBOT_NAME",
     "SERVICES",
     "SLOT_NAMES",
     "ConfigAgents",

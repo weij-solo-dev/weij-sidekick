@@ -1,4 +1,4 @@
-"""sidekick.interaction.initiative — the hard rules behind Bobby speaking first
+"""sidekick.interaction.initiative — the hard rules behind Banana speaking first
 
 Overview
     The attention layer (`attention.py`, `perception.camera`) only looks; this submodule decides

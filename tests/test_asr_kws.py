@@ -21,7 +21,7 @@ async def test_keyword_spotting_on_bundled_clip():
             keywords=(
                 "light up @light_up",
                 "L AH1 V L IY0 CH AY1 L D @lovely_child",
-                "b ǎo b ǐ @寶比",
+                "b ā n à n à @巴娜娜",
             ),
         )
     )

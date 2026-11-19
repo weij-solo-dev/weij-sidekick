@@ -13,7 +13,7 @@ Design
     (`local`) whose model files live under `.derived_data/models/`. Probe outcomes are classified
     into the few things a user can act on: network, credentials, voice, incomplete, or an
     opaque vendor error with its code.
-    `release()` unbinds every slot when Bobby's service stops (each session closes the backend
+    `release()` unbinds every slot when Banana's service stops (each session closes the backend
     it drops); the service's start loads and applies the spec again (block #87).
 Depends on
     sidekick.log, sidekick.storage, sidekick.audio, sidekick.llm, sidekick.asr, sidekick.tts,
@@ -59,7 +59,7 @@ from sidekick.vad import VADFactory, VADSession, VADSileroConfiguration, VADSile
 
 from .catalog import load_catalog
 from .catalog import provider as load_provider
-from .schemas import SERVICES, SLOT_NAMES, ConfigSlot, ConfigSpec, ProviderSpec
+from .schemas import ROBOT_NAME, SERVICES, SLOT_NAMES, ConfigSlot, ConfigSpec, ProviderSpec
 
 ProbeKind = Literal["ok", "network", "credentials", "voice", "incomplete", "http", "api", "unknown"]
 
@@ -128,9 +128,21 @@ class ConfigSession:
             ]
             if retired:
                 Log.info(
-                    f"dropped retired body keys {retired} (blocks #50, #85: Bobby's own"
+                    f"dropped retired body keys {retired} (blocks #50, #85: Banana's own"
                     " expressions; a stop of the service turns the robot off)"
                 )
+        robot = data.get("robot") if isinstance(data, dict) else None
+        if isinstance(robot, dict) and str(robot.get("name", ROBOT_NAME)).lower() != (
+            ROBOT_NAME.lower()
+        ):
+            # The name is fixed by the code, not by the home (block #94): a home written under
+            # another name takes the new one with its aliases and keyword lines.
+            Log.info(
+                f"the retired wake name {robot.get('name')!r} becomes {ROBOT_NAME!r} (block #94):"
+                " name, aliases and keyword lines reset"
+            )
+            for key in ("name", "aliases", "keywords"):
+                robot.pop(key, None)
         self.spec = ConfigSpec.model_validate(data) if data is not None else None
         Log.info(f"{'loaded' if self.spec else 'no'} spec at {self.path}")
         return self.spec
@@ -520,7 +532,7 @@ class ConfigSession:
                         return ConfigProbeOutcome(
                             key,
                             "incomplete",
-                            "SenseVoice model not downloaded yet (Bobby's start downloads it)",
+                            "SenseVoice model not downloaded yet (Banana's start downloads it)",
                             ps.provider,
                             ps.api,
                             ps.model,
@@ -557,7 +569,7 @@ class ConfigSession:
                         return ConfigProbeOutcome(
                             key,
                             "incomplete",
-                            "silero model not downloaded yet (Bobby's start downloads it)",
+                            "silero model not downloaded yet (Banana's start downloads it)",
                             ps.provider,
                             ps.api,
                             ps.model,

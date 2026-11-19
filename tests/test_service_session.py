@@ -187,7 +187,7 @@ async def test_stop_is_remembered_and_honoured_at_the_next_boot(tmp_path):
     await service.wait()
     assert service.state == "stopped" and log[-2:] == ["stop body", "release"]
     assert service.status()["transition"]["action"] == "stop"
-    # the next process reads the choice: Bobby stays stopped, the modules are still bound
+    # the next process reads the choice: Banana stays stopped, the modules are still bound
     log.clear()
     again = _service(tmp_path, [("body", Module("body", log))], log)
     await again.start()

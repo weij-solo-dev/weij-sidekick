@@ -49,12 +49,12 @@ def make(tmp_path, answer):
 
 
 def talk(dialogue, channel, chat, lines, start, private=False):
-    """Append a conversation: (speaker, text) pairs alternating with Bobby's replies."""
+    """Append a conversation: (speaker, text) pairs alternating with Banana's replies."""
     key = "voice" if channel == "voice" else f"{channel}:{chat}"
     conversation = dialogue.conversation_for(key, start)
     ts = start
     for speaker, text in lines:
-        role = "assistant" if speaker == "bobby" else "user"
+        role = "assistant" if speaker == "banana" else "user"
         dialogue.append(
             DialogueMessage(
                 channel,
@@ -143,7 +143,7 @@ async def test_closed_conversation_becomes_an_episode_and_kept_facts(tmp_path):
         "",
         [
             ("dad", "我鍾意飲凍檸茶，聽日要去睇牙"),
-            ("bobby", "好呀，祝你順利"),
+            ("banana", "好呀，祝你順利"),
             ("mum", "我哋星期日去飲茶"),
             ("person:3", "我鍾意貓"),
             ("dad", "老婆有高血壓，佢仲好鍾意榴槤"),
@@ -289,7 +289,7 @@ async def test_failures_retry_exclusions_and_rolling(tmp_path):
         DialogueMessage(
             "voice", "main", "assistant", "夠鐘食藥", ts=now - 2000, conversation=reminder
         )
-    )  # Bobby alone: nothing to write
+    )  # Banana alone: nothing to write
     assert [i["conversation"] for i in writer.due(now)] == [room]
     await writer.tick(now)
     failed = memory.episode_for(room)

@@ -8,7 +8,7 @@ Design
     Frozen dataclasses with `as_dict()` for JSON; no pydantic because nothing here is user input.
     `ready` means "no blocking item": `warn` rows are advice (no member enrolled, no channel
     paired), `bad` rows stop a conversation (no LLM key, daemon down). `service` is the state of
-    Bobby's service (block #87): while it is not running the report holds only the
+    Banana's service (block #87): while it is not running the report holds only the
     prerequisites, and the summary says "stopped" with what must be fixed before a start. The tab names are the
     dashboard's `data-tab` values (the module directories: live, voice, body, agent, contact,
     channel, record, extension, system) so a row can carry its own jump link.

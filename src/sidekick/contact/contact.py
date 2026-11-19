@@ -26,7 +26,7 @@ Design
     `MERGE_MIN_UTTERANCES`) is within `MERGE_SCORE` of that contact and clearly closer to it
     than to any other — the voice split in two the morning before (`person:25` vs 发瘟鸡: 0.57)
     is one again. Merging is by voice evidence, never by name (block #63 still holds).
-    The store stays open while Bobby's service is stopped (the Contacts page); `stop()` drops
+    The store stays open while Banana's service is stopped (the Contacts page); `stop()` drops
     the voice and face models and `check()` counts the household (block #87).
 Depends on
     sidekick.log, sidekick.storage, sidekick.audio.
@@ -85,7 +85,7 @@ MERGE_MARGIN = 0.1  # ...and this much closer to it than to the next contact
 NAME_TTL_S = 30.0  # display names are cached this long (dropped on any contact change)
 COUNTS_TTL_S = 30.0  # `live()` counts members and people seen at most this often
 SELF_ENROLL_TEXTS = (
-    "你好，我係 Bobby，係屋企嘅小管家。",
+    "你好，我係 Banana，係屋企嘅小管家。",
     "今日天氣好好，記得帶遮出門呀。",
     "我聽到你講嘢啦，有咩可以幫到你？",
 )
@@ -186,7 +186,7 @@ class ContactSession:
             items.append(
                 {
                     "id": "self_voice",
-                    "title": "Bobby's own voice",
+                    "title": "Banana's own voice",
                     "level": "warn",
                     "detail": "not enrolled yet (needs a working TTS)",
                 }
@@ -604,8 +604,8 @@ class ContactSession:
             self.store.upsert(
                 Contact(
                     SELF_ID,
-                    "Bobby (self)",
-                    ("robot", "bobby"),
+                    "Banana (self)",
+                    ("robot", "banana"),
                     "the robot's own TTS voice",
                     None,
                     False,

@@ -1,4 +1,7 @@
-"""Block #89: what the family's session of 10-31 taught — "BB", the name, stories, emoji."""
+"""Block #89: what the family's session of 10-31 taught — the name, stories, emoji.
+
+The robot was "Bobby" then; the lessons about the name are kept on the new one (block #94).
+"""
 
 from __future__ import annotations
 
@@ -16,35 +19,23 @@ def spotter() -> NameSpotter:
     return NameSpotter(robot.name, robot.aliases, 0.8)
 
 
-def test_bb_inside_a_sentence_is_a_child_not_the_name():
-    s = spotter()
-    # Mum to the child (both opened sessions on 10-31)
-    assert not s.match("洗完手再玩将佢出完家好多嘅手听到啦 BB 妈妈同你讲乜嘢啊").hit
-    assert not s.match("做乜嘢老危危煮啊 BB").hit
-    assert not s.match("原来系你喺度嗒嗒声牙仔 BB  B").hit
-    # the child calling Bobby
-    assert s.match("BB").hit
-    assert s.match("B比").hit and s.match("B比Y").hit and s.match("芭比").hit
-    assert s.match("BBY BBBY").hit
-
-
 def test_every_name_at_the_edges_goes_and_one_inside_is_renamed():
     s = spotter()
-    assert s.match("芭比波比芭比").remainder == ""  # only the name: 「我屋企冇個叫芭比嘅人」 before
-    assert s.match("芭比芭比芭比芭比芭比 B比芭比芭比 B比").remainder == ""
-    assert s.match("BB BOBY").remainder == ""  # "BB" beside a real name is the same call
-    assert s.match("BBY BBBY").remainder == ""
-    assert s.match("机械人 BOBY BOBBY BOBBY BOBY").remainder == "机械人"
-    assert s.match("阿 BOBY 你可唔可以播首歌俾我听啊").remainder == "你可唔可以播首歌俾我听啊"
-    assert s.match("我同Bobby讲咗").remainder == "我同Bobby讲咗"
-    assert s.match("讲个芭比嘅故事").remainder == "讲个Bobby嘅故事"
+    assert s.match("BANANNA BANANA").remainder == ""  # only the name, twice
+    assert s.match("BANAA BANANNA 把娜娜").remainder == ""
+    assert s.match("BANANA BANANNA BANANA BANANNA BANANA").remainder == ""
+    assert s.match("机器人 BANANA BANANNA BANANA").remainder == "机器人"
+    assert s.match("啊 BANANA 你可不可以放首歌给我听").remainder == "你可不可以放首歌给我听"
+    assert s.match("我跟Banana讲了").remainder == "我跟Banana讲了"
+    assert s.match("讲个把娜娜的故事").remainder == "讲个Banana的故事"
     assert (
-        s.match("BOBE 点解你唔认人啦 BOBYE 点解你唔认人啦").remainder
-        == "点解你唔认人啦 Bobby 点解你唔认人啦"
+        s.match("BANANNA 你为什么不认人 BANANAS 你为什么不认人").remainder
+        == "你为什么不认人 Banana 你为什么不认人"
     )
-    assert s.match("Bobby，BB 要冲凉喇").remainder == "要冲凉喇"
-    assert s.match("今日天氣點呀 Bobby？").remainder == "今日天氣點呀？"  # the question mark stays
-    assert s.without_name("今日天氣好好") == "今日天氣好好"
+    assert (
+        s.match("今天天气怎么样 Banana？").remainder == "今天天气怎么样？"
+    )  # the question mark stays
+    assert s.without_name("今天天气很好") == "今天天气很好"
 
 
 def test_a_reply_that_asks_waits_longer_for_the_answer():
@@ -72,7 +63,7 @@ def test_a_sentence_begun_in_time_holds_the_session():
     m.begin_session("wake_name", 0.0, speaker="思源")
     m.on_robot_speaking(True, 1.0)
     m.on_robot_speaking(False, 3.0)
-    m.on_turn_done(3.0, "B比", False, reply="做咩？咁叫我。")
+    m.on_turn_done(3.0, "Banana", False, reply="做咩？咁叫我。")
     assert not m.session.asked  # no question mark at the end
     assert m.on_tick(11.5, speech_onset=5.3) is None  # the deadline (11.0) passed mid-sentence
     assert m.on_segment(13.1, 7.8, 0.0, None, "思源", "睇唔睇到个胶都系靓噶").accept
@@ -106,21 +97,21 @@ def test_call_answers_vary_and_wait_for_their_clips():
 
 
 def test_a_name_hit_adopts_the_voice_on_it():
-    """22:52:33 「BB」 was credited to `guest:12`: the keyword stream opened the session."""
+    """10-31 22:52:33: a call of the name was credited to `guest:12`, because the keyword
+    stream had opened the session without a speaker."""
     s = spotter()
     m = EngagementMachine(ConfigInteraction())
     assert m.on_keyword(10.0, 0.0).accept
     assert m.session is not None and m.session.speaker is None
     assert m.session.addressee.startswith("guest:")
-    d = m.on_segment(11.0, 6.2, 0.0, s.match("芭比芭比"), "黎思源", "芭比芭比")
+    d = m.on_segment(11.0, 6.2, 0.0, s.match("BANANNA BANANA"), "黎思源", "BANANNA BANANA")
     assert d.accept and d.reason == "wake name in session"
     assert m.session.speaker == "黎思源" and m.session.addressee == "黎思源"
 
 
 def test_emoji_are_never_spoken():
     assert (
-        speakable("我屋企冇個叫芭比嘅人喎 😂 係咪想我講個故事？")
-        == "我屋企冇個叫芭比嘅人喎 係咪想我講個故事？"
+        speakable("我屋企冇呢個人喎 😂 係咪想我講個故事？") == "我屋企冇呢個人喎 係咪想我講個故事？"
     )
     assert speakable("好呀👍") == "好呀" and speakable("👍") == ""
     assert speakable("普通句子，冇emoji。") == "普通句子，冇emoji。"

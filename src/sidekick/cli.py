@@ -2,11 +2,11 @@
 
 Overview
     Two commands are the whole CLI (the owner, PLAN.md block #85). `sidekick startup` starts the
-    main process — the dashboard, the data pages and, when the owner left it running, Bobby's
+    main process — the dashboard, the data pages and, when the owner left it running, Banana's
     service — in the background and prints the dashboard's address; `sidekick close` closes it:
     the service stops first, so the robot turns off, then the dashboard. Everything else —
     readiness, configuration, the daemon, channels, enrollment, extensions, backup — is on the
-    dashboard; starting and stopping Bobby is its power control.
+    dashboard; starting and stopping Banana is its power control.
 Design
     `startup` spawns the same command with the internal `--foreground` flag, detached in its own
     session (a Ctrl+C in the shell never reaches it), its output appended to
@@ -155,7 +155,7 @@ def cmd_startup(args: argparse.Namespace) -> int:
             print("  " + line)
         return 1
     print(f"sidekick is up: {url}")
-    print("Bobby starts on its own when you left it running; else press Start on the dashboard.")
+    print("Banana starts on its own when you left it running; else press Start on the dashboard.")
     return 0
 
 
@@ -180,7 +180,7 @@ def _run_foreground(home: Path, log_level: str) -> int:
 
 
 def cmd_close(args: argparse.Namespace) -> int:
-    """Close the main process: Bobby's service stops (the robot turns off), then the rest."""
+    """Close the main process: Banana's service stops (the robot turns off), then the rest."""
     home = _home(args)
     pid = read_pid(home)
     if pid is None:
@@ -206,16 +206,16 @@ def cmd_close(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     """The argparse tree: `startup` and `close`."""
     parser = argparse.ArgumentParser(
-        prog="sidekick", description="Bobby, a home butler with a Reachy Mini body"
+        prog="sidekick", description="Banana, a home butler with a Reachy Mini body"
     )
     parser.add_argument("--version", action="version", version=f"sidekick {__version__}")
     parser.add_argument("--home", help="runtime home (default: $SIDEKICK_HOME or ./.derived_data)")
     parser.add_argument("--log-level", default="INFO")
     sub = parser.add_subparsers(dest="command", required=True)
-    p_startup = sub.add_parser("startup", help="start sidekick (the dashboard, then Bobby)")
+    p_startup = sub.add_parser("startup", help="start sidekick (the dashboard, then Banana)")
     p_startup.add_argument("--foreground", action="store_true", help=argparse.SUPPRESS)
     p_startup.set_defaults(func=cmd_startup)
-    sub.add_parser("close", help="close sidekick (Bobby stops, the robot turns off)").set_defaults(
+    sub.add_parser("close", help="close sidekick (Banana stops, the robot turns off)").set_defaults(
         func=cmd_close
     )
     return parser

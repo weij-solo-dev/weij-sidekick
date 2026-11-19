@@ -22,7 +22,7 @@ class FakeBotApi:
         self.calls.append((method, body))
         if method == "getMe":
             return httpx.Response(
-                200, json={"ok": True, "result": {"id": 1, "username": "bobby_bot"}}
+                200, json={"ok": True, "result": {"id": 1, "username": "banana_bot"}}
             )
         if method == "getUpdates":
             offset = body.get("offset", 0)
@@ -72,7 +72,7 @@ async def test_pairing_allowlist_and_dispatch():
         inbound.append(msg)
 
     adapter.handler = handler
-    assert (await adapter.get_me())["username"] == "bobby_bot"
+    assert (await adapter.get_me())["username"] == "banana_bot"
     # unpaired chat: warned once, never dispatched
     api.updates = [message(1, 42, "你好")]
     await adapter.poll_once()

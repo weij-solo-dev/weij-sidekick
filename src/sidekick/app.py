@@ -4,7 +4,7 @@ Overview
     `App.boot()` creates the data directory, configures logging, loads and applies the config
     (service backends into the LLM / ASR / TTS / VAD sessions) and constructs every session.
     `App.start()` starts the **console** — readiness, the dashboard — and hands the **service**
-    (everything Bobby does) to `ServiceSession`, which starts it when the owner left it running;
+    (everything Banana does) to `ServiceSession`, which starts it when the owner left it running;
     `App.stop()` stops the service and then the console; `App.run()` keeps the process alive
     until a signal arrives. `App.setup_service()` binds every runtime module to the current spec;
     the service calls it before each start (blocks #85–#87).

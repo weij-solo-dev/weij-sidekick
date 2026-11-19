@@ -1,4 +1,4 @@
-"""sidekick.automation.heartbeat — Bobby's periodic look for news the household has not heard yet
+"""sidekick.automation.heartbeat — Banana's periodic look for news the household has not heard yet
 
 Overview
     The heartbeat (OpenClaw's word for it) is one built-in `cron` job of the scheduler: every
@@ -14,7 +14,7 @@ Design
     the façade hands to the scheduler as the quiet-hours rule — the heartbeat stays silent in
     quiet hours, user reminders do not) and its prompt (`heartbeat_prompt`). Reminders are
     spoken by their own jobs, never by the heartbeat. The timeline view carries no times, so the
-    prompt states when the heartbeat last ran and lists what Bobby said on its own initiative in
+    prompt states when the heartbeat last ran and lists what Banana said on its own initiative in
     the last day, with times — the façade asks the agent for that list (`delivered_since`);
     without it the heartbeat re-announced a past reminder every half hour (block #47).
 Depends on
@@ -75,7 +75,7 @@ def is_heartbeat(job: Job) -> bool:
 
 
 def heartbeat_prompt(job: Job, said: Sequence[tuple[float, str]]) -> str:
-    """The turn's prompt plus when it last ran and what Bobby already said unprompted."""
+    """The turn's prompt plus when it last ran and what Banana already said unprompted."""
     lines = [job.prompt]
     if job.last_run_ts:
         lines.append(f"Your last heartbeat was at {_clock(job.last_run_ts)}.")

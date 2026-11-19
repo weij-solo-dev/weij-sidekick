@@ -7,7 +7,7 @@ Overview
     same symptom after a USB reset). `probe()` reads one parameter and classifies the chip as
     `ok`, `busy`, `absent` or `error`; `reboot()` sends the vendor REBOOT command and waits for
     re-enumeration. `ensure_healthy()` combines both and is run before the daemon is spawned
-    (each start of Bobby's service, block #85).
+    (each start of Banana's service, block #85).
 Design
     Uses the SDK's `audio_control_utils` (pyusb) lazily so importing sidekick never touches USB.
     The check must run while no other process holds the control interface, which is why it sits

@@ -9,7 +9,7 @@ Overview
     "someone else's" and "down" apart. The service's start calls `ensure_running()` (spawn it
     when sidekick manages it and it is down; start its backend when it answers but was stopped)
     and its stop calls `shutdown()` (ours: SIGINT; someone else's, e.g. on a Wireless robot:
-    `POST /api/daemon/stop?goto_sleep=…`), so a stopped Bobby is a robot turned off (block #85).
+    `POST /api/daemon/stop?goto_sleep=…`), so a stopped Banana is a robot turned off (block #85).
 Design
     One subprocess per home, detached in its own session so a Ctrl+C in the operator's shell
     does not kill the robot's daemon; the body's `stop()` stops it with the service. The daemon's

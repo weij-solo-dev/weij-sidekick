@@ -13,7 +13,7 @@ from sidekick.storage import StorageSession
 def test_presets_validate_and_classify():
     for preset in ConfigSession.PRESETS:
         spec = ConfigSession.preset_spec(preset)
-        assert spec.robot.name == "Bobby"
+        assert spec.robot.name == "Banana"
     wireless = ConfigSession.preset_spec("wireless")
     assert wireless.body.media_backend == "webrtc" and not wireless.body.manage_daemon
     assert ConfigSession.profile_of(wireless) == "wireless"

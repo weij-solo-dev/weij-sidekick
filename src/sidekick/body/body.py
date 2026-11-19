@@ -5,7 +5,7 @@ Overview
     usable from asyncio code: the motion owner, the audio pump, the paced player and a status
     monitor that mirrors wake/sleep state, caches the direction of arrival and the tracked face,
     and fires callbacks on touch and on state changes. Public verbs are body-agnostic:
-    `look`, `look_at_doa`, `gesture`, `express` / `beat` / `hold_state` / `end_state` (Bobby's
+    `look`, `look_at_doa`, `gesture`, `express` / `beat` / `hold_state` / `end_state` (Banana's
     own expression library on the motion owner's three layers), `set_style` /
     `set_expressiveness` (how big motions are), `antennas`, `track_face`, `speak`, `duck`,
     `stop_speaking`, `subscribe_audio`, `subscribe_speaker`, `frame`, `doa` / `doa_between`,
@@ -17,7 +17,7 @@ Overview
     A controller takes the motion owner over with `take_control()` and drives it with
     `manual_pose()` (head, height, body yaw, antennas) plus the `manual=True` variants of
     `gesture` / `express`; `release_control()` hands it back. There is no idle breathing any more
-    (the owner retired it, block #80): an idle Bobby looks around instead (`interaction`).
+    (the owner retired it, block #80): an idle Banana looks around instead (`interaction`).
 Design
     Threads, not asyncio, because the SDK and GStreamer are blocking; consumers bridge events
     into their loop with `call_soon_threadsafe`. The **frame pump** is one more thread: the SDK

@@ -496,7 +496,7 @@ async def test_turns_someone_waits_for_are_hedged_and_jobs_are_not(session):
     assert s._warm_connections() == 1
     roster = s.roster()
     assert roster[0]["name"] == "main" and roster[0]["main"] and roster[0]["origin"] == "core"
-    assert "Bobby" in roster[0]["role"] and "delegate" in roster[0]["resolved_tools"]
+    assert "Banana" in roster[0]["role"] and "delegate" in roster[0]["resolved_tools"]
 
 
 async def test_acknowledgement_only_for_someone_waiting_in_the_room(session):

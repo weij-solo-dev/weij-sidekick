@@ -481,7 +481,7 @@
 <div class="shell" id="shell">
 <aside class="side">
   <div class="brand"><b>Sidekick</b></div>
-  <button class="menu-btn" id="menu-btn" type="button" aria-label="Modules" aria-expanded="false" aria-controls="side-nav"><i class="pd" id="menu-power-dot" title="Bobby's service"></i><span id="menu-current">Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <button class="menu-btn" id="menu-btn" type="button" aria-label="Modules" aria-expanded="false" aria-controls="side-nav"><i class="pd" id="menu-power-dot" title="Banana's service"></i><span id="menu-current">Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 <nav id="side-nav">
       <button data-tab="live" class="active"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11 7.4L4 21l1.6-5A8 8 0 1 1 21 12z"/></svg><span>Live</span><i class="dot" id="dot-live"></i></button>
       <button data-tab="voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4"/></svg><span>Voice</span><i class="dot" id="dot-voice"></i></button>
@@ -493,13 +493,13 @@
       <button data-tab="record"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/></svg><span>Record</span><i class="dot" id="dot-record"></i></button>
       <button data-tab="extension"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V6a2 2 0 0 1 2-2h4v3a2 2 0 0 0 4 0V4h4a2 2 0 0 1 2 2v4h-3a2 2 0 0 0 0 4h3v4a2 2 0 0 1-2 2h-4v-3a2 2 0 0 0-4 0v3H6a2 2 0 0 1-2-2v-4h3a2 2 0 0 0 0-4H4z"/></svg><span>Extension</span><i class="dot" id="dot-extension"></i></button>
       <button data-tab="system"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>System</span><i class="dot" id="dot-system"></i></button>
-    <button class="power" id="power-btn" type="button" aria-haspopup="true" aria-expanded="false" title="Start or stop Bobby"><i class="pd" id="power-dot"></i><span class="pl"><b id="power-label">…</b><small id="power-sub"></small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/></svg></button>
+    <button class="power" id="power-btn" type="button" aria-haspopup="true" aria-expanded="false" title="Start or stop Banana"><i class="pd" id="power-dot"></i><span class="pl"><b id="power-label">…</b><small id="power-sub"></small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/></svg></button>
   </nav>
 </aside>
 <div class="menu-backdrop" id="menu-backdrop"></div>
 <main>
   <section id="tab-live" class="active live-board">
-    <div class="card stopped-card" id="live-stopped" hidden><span class="svc-dot" id="live-stopped-dot"></span><div class="grow"><b>Bobby is stopped</b><span class="pm" id="live-stopped-sub"></span><span class="pe" id="live-stopped-err" hidden></span></div><button class="primary" data-service-start>Start</button></div>
+    <div class="card stopped-card" id="live-stopped" hidden><span class="svc-dot" id="live-stopped-dot"></span><div class="grow"><b>Banana is stopped</b><span class="pm" id="live-stopped-sub"></span><span class="pe" id="live-stopped-err" hidden></span></div><button class="primary" data-service-start>Start</button></div>
     <div class="live-top">
     <div class="slot" data-slot="camera"><div class="card cam" id="cam-card"><h3>Camera <small id="cam-info">MJPEG · ≤ 10 fps</small></h3><div class="cam-wrap"><img id="live-cam" alt="camera stream"><div class="cam-faces" id="cam-faces"></div></div></div></div>
     <div class="slot" data-slot="body3d"><div class="card" id="robot3d-card"><h3>Body <small id="pose-info"></small></h3><div id="robot3d" class="robot3d"><span class="hint">drag to orbit · wheel to zoom</span></div></div></div>
@@ -571,7 +571,7 @@
         <div class="row" style="margin:4px 0"><span id="rb-motion-result" class="dim"></span></div>
       </div>
       <div class="card" id="expr-card">
-        <h3>Expressions <small>Bobby's own library · played on top of the gaze, no sound</small></h3>
+        <h3>Expressions <small>Banana's own library · played on top of the gaze, no sound</small></h3>
         <div class="row" style="margin-top:0"><label class="expr-intensity">intensity <input type="range" id="expr-intensity" min="0.3" max="1.5" step="0.1" value="1"><output id="expr-intensity-out">1.0</output></label><button id="expr-think" title="the thinking state as in a conversation: look away, then think long, then back">Think 6 s</button><span id="expr-result" class="dim"></span></div>
         <div id="expr-groups" class="expr-groups"></div>
       </div>
@@ -584,7 +584,7 @@
         <h3>Speaker <small id="rb-spk-level"></small></h3>
         <div class="row" style="margin-top:0"><button data-spk="tone">Tone 440 Hz</button><button data-spk="sweep">Sweep 0.1–6 kHz</button><button data-spk="mic">Play last capture</button><span id="rb-spk-result" class="dim"></span></div>
         <div class="row">
-          <input id="say-text" style="flex:1;min-width:200px" placeholder="你好，我係 Bobby" value="你好，我係 Bobby，有咩可以幫到你？">
+          <input id="say-text" style="flex:1;min-width:200px" placeholder="你好，我係 Banana" value="你好，我係 Banana，有咩可以幫到你？">
           <select id="say-expr"><option value="">no expression</option></select>
           <button class="primary" id="say-btn" data-needs-service>Say</button>
           <span id="say-result" class="dim"></span>
@@ -634,7 +634,7 @@
           <div class="card"><h3>Thresholds</h3><div data-params="voice.thresholds"></div></div>
         </div>
         <div class="col">
-  <div class="card"><h3>Wake name <small>Bobby — the aliases SenseVoice may hear, the keyword-spotter lines</small></h3><div data-params="voice.wake"></div></div>
+  <div class="card"><h3>Wake name <small>Banana — the aliases SenseVoice may hear, the keyword-spotter lines</small></h3><div data-params="voice.wake"></div></div>
           <div class="card"><h3>Triggers &amp; turns</h3><div data-params="voice.triggers"></div></div>
           <div class="card"><h3>Words &amp; the TV</h3><div data-params="voice.words"></div></div>
         </div>
@@ -681,7 +681,7 @@
     </div>
     <div class="view" data-view="mcp">
       <div class="card board">
-        <div class="board-head"><h3>MCP servers <small id="mcp-count"></small></h3><small class="grow">other programs that lend Bobby their tools — a stdio command or an HTTP URL; their tools appear under Tools as <code>mcp.&lt;server&gt;.&lt;tool&gt;</code></small><button id="mcp-new">+ Add a server</button></div>
+        <div class="board-head"><h3>MCP servers <small id="mcp-count"></small></h3><small class="grow">other programs that lend Banana their tools — a stdio command or an HTTP URL; their tools appear under Tools as <code>mcp.&lt;server&gt;.&lt;tool&gt;</code></small><button id="mcp-new">+ Add a server</button></div>
         <div class="items" id="mcp-board"></div>
       </div>
     </div>
@@ -695,7 +695,7 @@
       <div class="two-col">
         <div class="col">
           <div class="card">
-            <h3>Remember <small>add a fact by hand — Bobby also learns from each conversation after it ends</small></h3>
+            <h3>Remember <small>add a fact by hand — Banana also learns from each conversation after it ends</small></h3>
             <div class="row" style="margin:0">
               <select id="mem-scope"><option value="household">household</option></select>
               <select id="mem-category" aria-label="category"></select>
@@ -754,7 +754,7 @@
         <div class="card"><h3>Scheduler</h3><div data-params="automations.scheduler"></div></div>
       </div>
       <div class="col">
-        <div class="card"><h3>Initiative <small>when Bobby may speak first</small></h3><div data-params="automations.initiative"></div></div>
+        <div class="card"><h3>Initiative <small>when Banana may speak first</small></h3><div data-params="automations.initiative"></div></div>
       </div>
     </div>
     <div style="margin-top:14px">
@@ -786,7 +786,7 @@
         <div class="kv" id="telegram-state"></div>
         <div class="row"><input type="password" id="tg-token" placeholder="bot token (from @BotFather)" style="min-width:240px;flex:1"><button id="tg-token-save">Save token</button></div>
         <div class="row"><button class="primary" id="telegram-pair">New pairing code</button><span id="telegram-code" class="dim"></span></div>
-        <small>A new token runs from Bobby's next start (the power control: Restart); then send <code>/pair &lt;code&gt;</code> to the bot from your phone.</small>
+        <small>A new token runs from Banana's next start (the power control: Restart); then send <code>/pair &lt;code&gt;</code> to the bot from your phone.</small>
       </div>
   <div class="card">
         <h3>WeChat (iLink)</h3>
@@ -794,7 +794,7 @@
         <div class="row"><button class="primary" id="wx-login">Log in with WeChat</button><button id="wx-cancel" hidden>Cancel</button><span id="wx-status" class="dim"></span></div>
         <div class="row" id="wx-code-row" hidden><input id="wx-code" inputmode="numeric" placeholder="digits shown in WeChat" style="max-width:200px"><button id="wx-code-send">Send</button></div>
         <img id="wx-qr" alt="WeChat login QR code" width="220" height="220" style="display:block;border-radius:10px;background:#fff;padding:6px" hidden>
-        <small>Scan the code with WeChat on your phone and confirm there; the bot token is saved and WeChat runs from Bobby's next start.</small>
+        <small>Scan the code with WeChat on your phone and confirm there; the bot token is saved and WeChat runs from Banana's next start.</small>
       </div>
   <div class="card">
         <h3>Presence</h3>
@@ -817,7 +817,7 @@
       <table><thead><tr><th>name</th><th>aliases</th><th>language</th><th>owner</th><th>remote</th><th>voice</th><th>face</th><th></th></tr></thead><tbody id="contacts"></tbody></table>
     </div>
     <div class="card" style="margin-top:12px">
-      <h3>People seen <small>heard but not named yet — Bobby befriends them itself when it has heard them enough; or give a name here</small></h3>
+      <h3>People seen <small>heard but not named yet — Banana befriends them itself when it has heard them enough; or give a name here</small></h3>
       <table><thead><tr><th>who</th><th>heard</th><th>face frames</th><th>last seen</th><th>status</th><th></th></tr></thead><tbody id="people"></tbody></table>
     </div>
     <div class="card enroll" id="enroll-panel" style="display:none;margin-top:12px">
@@ -881,7 +881,7 @@
   <div class="card" id="service-card"><h3>Service <small id="service-when"></small></h3>
         <div class="kv" id="service-kv"></div>
         <div class="row"><span class="svc-dot" id="service-dot"></span><span id="service-line" style="font-weight:600"></span><span class="spacer" style="flex:1"></span><button class="primary" data-service-start>Start</button><button data-service-restart>Restart</button><button data-service-stop>Stop</button></div>
-        <small class="dim">Stopping turns the robot off (the daemon stops, the robot sleeps) and frees what Bobby holds; the dashboard and every data page stay. A start checks the configuration and brings each module up with its own checks.</small>
+        <small class="dim">Stopping turns the robot off (the daemon stops, the robot sleeps) and frees what Banana holds; the dashboard and every data page stay. A start checks the configuration and brings each module up with its own checks.</small>
       </div>
   <div class="card" id="rail-system-card"><h3>Status <small id="rail-system-when"></small></h3>
         <div class="ready"><span class="verdict" id="rail-verdict">checking…</span><button id="rail-check" title="local checks, one real call per slot, a short tone">Check</button></div>
@@ -917,10 +917,10 @@
   <div class="sheet-body" id="sheet-body"></div>
   <div class="sheet-foot" id="sheet-foot"></div>
 </dialog>
-<div class="power-panel" id="power-panel" role="dialog" aria-label="Bobby's service" hidden></div>
+<div class="power-panel" id="power-panel" role="dialog" aria-label="Banana's service" hidden></div>
 <dialog id="start-sheet" class="sheet start-sheet" aria-labelledby="start-title">
   <div class="sheet-head">
-    <div class="grow"><h2 id="start-title">Starting Bobby</h2><div class="sub" id="start-sub"></div></div>
+    <div class="grow"><h2 id="start-title">Starting Banana</h2><div class="sub" id="start-sub"></div></div>
   </div>
   <div class="sheet-body"><div class="start-error" id="start-error" hidden></div><div class="steps" id="start-steps"></div></div>
   <div class="sheet-foot"><button class="primary" id="start-ok" disabled>OK</button></div>

@@ -1,10 +1,11 @@
 """Who is speaking from one day to the next (block #80).
 
 The owner was befriended one night from three utterances and scored 0.41–0.54 against them the
-next morning: a new `person:25` took their voice, and a short "Bobby" made `person:26`. These
-tests pin the rules that keep one voice one identity: a contact at the threshold beats a closer
-unnamed person, the uncertain band is not a stranger, contacts keep learning, a split voice is
-merged back, and an utterance too short to tell is neither identified nor a new person.
+next morning: a new `person:25` took their voice, and a short call of the name made
+`person:26`. These tests pin the rules that keep one voice one identity: a contact at the
+threshold beats a closer unnamed person, the uncertain band is not a stranger, contacts keep
+learning, a split voice is merged back, and an utterance too short to tell is neither identified
+nor a new person.
 """
 
 from __future__ import annotations
@@ -139,7 +140,7 @@ def test_short_or_uncertain_speech_never_starts_a_new_person(tmp_path):
     _enroll(contacts, "发瘟鸡", _unit(1), 3)
     session = InteractionSession()
     session.contacts = contacts
-    # a 0.7 s "Bobby" is not identified at all
+    # a 0.7 s call of the name is not identified at all
     short = asyncio.run(session._identify(_tone(1320), 0.7))
     assert short.speaker is None and short.vector is None
     assert asyncio.run(session._person_for(_tone(1320), None, short, 0.7)) == (None, None)

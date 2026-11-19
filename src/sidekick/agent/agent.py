@@ -93,7 +93,7 @@ from .writer import MemoryWriter
 
 LANGUAGE_NAMES = {"yue": "Cantonese", "zh": "Mandarin Chinese", "en": "English"}
 
-MAIN_ROLE = """You are Bobby (波比), a small desktop robot and the household's butler.
+MAIN_ROLE = """You are Banana, a small desktop robot and the household's butler.
 You speak with the family in person through a speaker, and sometimes through chat apps.
 Rules:
 - Be brief: one or two short sentences, like a person talking. No lists, no markdown, no emoji.
@@ -105,8 +105,9 @@ Rules:
 - Spoken turns are speech-recognition transcripts and can be wrong, above all names and short
   words. Read them for what was most likely said (a word that sounds like your name or a
   household member's is that name); if you still cannot tell, ask briefly instead of answering
-  a different question. Your name comes out as 芭比, 巴比, 波比, 爸比, B比, BOBY or BBY: that is
-  someone calling you, never another person or a doll.
+  a different question. Your name is the English word "banana"; it comes out as BANANA,
+  BANANNA, ANANNA, 把娜娜 or 巴娜娜: that is someone calling you, never another person and not
+  the fruit (the fruit is 香蕉).
 - You have no hands and cannot leave your desk: never offer to cook, fetch, carry or make
   anything. Offer only what your tools can do.
 - Someone shown as person:N or guest:N has no name yet. Never say or write such a label; it is
@@ -628,7 +629,7 @@ class AgentSession:
             await asyncio.sleep(KEEP_WARM_S)
 
     def warm(self) -> None:
-        """Someone started talking to Bobby: open the main agent's LLM connection now.
+        """Someone started talking to Banana: open the main agent's LLM connection now.
 
         Called by the voice front end at speech onset inside a session (duck-typed); at most
         once every `WARM_GAP_S`, and never waited for.
@@ -712,7 +713,7 @@ class AgentSession:
         for row in self.dialogue.conversation_rows(conversation, limit=80):
             if row.role not in ("user", "assistant"):
                 continue
-            who = self._label(row.speaker) if row.role == "user" else "Bobby"
+            who = self._label(row.speaker) if row.role == "user" else "Banana"
             at = time.strftime("%H:%M", time.localtime(row.ts))
             lines.append(f"[{at}] {who}: {PERFORMANCE_TAG.sub('', row.content).strip()}")
         return lines
@@ -1060,7 +1061,7 @@ class AgentSession:
         return text
 
     def delivered_since(self, ts: float) -> list[tuple[float, str]]:
-        """What Bobby delivered on its own initiative since `ts`, oldest first, tags removed."""
+        """What Banana delivered on its own initiative since `ts`, oldest first, tags removed."""
         return [
             (row.ts, PERFORMANCE_TAG.sub("", row.content).strip())
             for row in self.dialogue.since(ts, role="assistant", limit=5000)

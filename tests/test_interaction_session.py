@@ -211,8 +211,8 @@ async def test_wake_name_turn_and_timeout(stack):
         assert session.machine.state == InteractionState.IDLE
         assert primary.calls == []  # invariant 17: nothing went to the cloud slot
         # Wake name + question: engaged, cloud ASR on the clip, reply spoken.
-        local.script = ["BOBBY 今日天氣點呀"]
-        primary.script = ["Bobby，今日天氣點呀？"]
+        local.script = ["BANANA 今日天氣點呀"]
+        primary.script = ["Banana，今日天氣點呀？"]
         backend.feed_audio(speech(1.2))
         backend.feed_audio(np.zeros(SR // 2, np.float32))
         assert await wait_for(lambda: session.last_turn is not None and session.last_turn.ok, 15.0)
@@ -247,15 +247,15 @@ async def test_wake_name_turn_and_timeout(stack):
 
 
 async def test_only_the_name_is_answered_out_loud_at_once(stack):
-    """Block #92: 「Bobby」 alone got a flick of the antennas, and first-time callers thought
-    Bobby was broken. The answer is a clip made at start: no model call, no cloud ASR."""
+    """Block #92: the name alone got a flick of the antennas, and first-time callers thought
+    the robot was broken. The answer is a clip made at start: no model call, no cloud ASR."""
     from sidekick.interaction.call import CALL_ANSWERS
 
     backend, _body, session, local, primary, _fake_tts, responder = stack
     await session.start()
     try:
         assert await wait_for(lambda: len(session.calls.clips) >= 4, 5.0)  # made at start
-        local.script = ["芭比芭比"]
+        local.script = ["BANANNA BANANA"]
         backend.feed_audio(speech(1.2))
         backend.feed_audio(np.zeros(SR // 2, np.float32))
         assert await wait_for(

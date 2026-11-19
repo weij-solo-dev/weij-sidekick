@@ -3,7 +3,15 @@ import json
 import pytest
 
 from sidekick.asr import ASRSession
-from sidekick.config import ConfigSession, ConfigSpec, load_catalog, provider
+from sidekick.config import (
+    ROBOT_ALIASES,
+    ROBOT_KEYWORDS,
+    ROBOT_NAME,
+    ConfigSession,
+    ConfigSpec,
+    load_catalog,
+    provider,
+)
 from sidekick.llm import LLMSession, LLMV1ChatCompletionBackend
 from sidekick.storage import StorageSession
 from sidekick.tts import TTSMiniMaxSyncBackend, TTSMiniMaxWSBackend, TTSSession
@@ -40,7 +48,7 @@ def test_default_spec_binds_every_slot():
         "tts.fallback": "minimax",
         "vad.primary": "local",
     }
-    assert spec.languages.default == "yue" and spec.robot.name == "Bobby"
+    assert spec.languages.default == "yue" and spec.robot.name == "Banana"
     assert spec.credentials == {"minimax": {"api_key": ""}}
 
 
@@ -208,3 +216,33 @@ async def test_probe_classifies_and_resolves_region(tmp_path, monkeypatch):
         outcomes["asr.primary"].kind == "incomplete"
         and "api_key" in outcomes["asr.primary"].message
     )
+
+
+def test_a_home_written_under_the_retired_name_takes_the_new_one(tmp_path):
+    """Block #94: the name is fixed by the code. A home whose config still says "Bobby" gets
+    the new name with its aliases and keyword lines; everything else in it is kept."""
+    session = ConfigSession(StorageSession(tmp_path))
+    old = ConfigSession.default_spec().model_dump(mode="json")
+    old["robot"] = {
+        "name": "Bobby",
+        "aliases": ["bobby", "bob", "波比", "芭比"],
+        "keywords": ["B AA1 B IY0 @bobby", "b ō b ǐ @波比"],
+    }
+    old["interaction"]["session_timeout_s"] = 11.0
+    session.path.parent.mkdir(parents=True, exist_ok=True)
+    session.path.write_text(json.dumps(old, ensure_ascii=False))
+    spec = session.load()
+    assert spec is not None and spec.robot.name == ROBOT_NAME == "Banana"
+    assert spec.robot.aliases == list(ROBOT_ALIASES) and "bobby" not in spec.robot.aliases
+    assert spec.robot.keywords == list(ROBOT_KEYWORDS)
+    assert spec.interaction.session_timeout_s == 11.0  # the rest of the home is untouched
+    kws = session.resolve(spec, "asr", "kws")
+    assert kws.params["keywords"] == list(ROBOT_KEYWORDS)
+    # the spotter is tuned for the three-syllable name (block #94)
+    assert kws.params["keywords_score"] == 2.0 and kws.params["keywords_threshold"] == 0.2
+    # a home already on the name keeps the aliases its owner tuned on the Voice tab
+    session.save(spec)
+    tuned = json.loads(session.path.read_text())
+    tuned["robot"]["aliases"] = ["banana", "把娜娜", "班娜娜"]
+    session.path.write_text(json.dumps(tuned, ensure_ascii=False))
+    assert session.load().robot.aliases == ["banana", "把娜娜", "班娜娜"]

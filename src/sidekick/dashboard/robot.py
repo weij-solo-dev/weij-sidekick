@@ -158,7 +158,7 @@ class RobotControl:
         return {"ok": True}
 
     def express(self, name: str, intensity: float = 1.0) -> dict[str, Any]:
-        """One of Bobby's expressions, by hand."""
+        """One of Banana's expressions, by hand."""
         body = self._require_hold()
         if not body.express(name, manual=True, intensity=intensity):
             raise KeyError(name)

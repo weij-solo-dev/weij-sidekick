@@ -1,11 +1,11 @@
-"""sidekick.body.expression — Bobby's own expressions: keyframed overlays the motion owner plays
+"""sidekick.body.expression — Banana's own expressions: keyframed overlays the motion owner plays
 
 Overview
     An expression is a short set of offset curves — head yaw / pitch / roll, x / y / z and the
     two antennas — that the motion owner adds to the pose it composes (look, speech
     sway). Because it is an offset, an expression never takes the gaze away from the person it
     is looking at and composes with speech and with other layers. The library is a flat data
-    file, `expression_library.json`, authored for Bobby (block #50); the SDK's recorded moves
+    file, `expression_library.json`, authored for Banana (block #50); the SDK's recorded moves
     and their sound effects are not used any more.
 Design
     Channels: `yaw`, `pitch`, `roll` in degrees with the owner's signs (positive yaw turns left,

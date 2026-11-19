@@ -31,11 +31,11 @@ def test_a_first_config_for_this_host(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("SIDEKICK_MINIMAX_API_KEY", "sk-cp-ENVKEY0000000000009999")
     home = tmp_path / "home"
     spec = cli.ensure_config(home)
-    assert spec.robot.name == "Bobby" and "wrote a first config" in capsys.readouterr().out
+    assert spec.robot.name == "Banana" and "wrote a first config" in capsys.readouterr().out
     data = json.loads((home / "config.json").read_text())
     assert data["credentials"]["minimax"]["api_key"].startswith("sk-cp-ENVKEY")
     assert oct((home / "config.json").stat().st_mode & 0o777) == "0o600"
-    assert cli.ensure_config(home).robot.name == "Bobby"  # kept, not rewritten
+    assert cli.ensure_config(home).robot.name == "Banana"  # kept, not rewritten
     assert capsys.readouterr().out == ""
     assert cli.host_profile() in ("lite-mac", "pi", "default")
 

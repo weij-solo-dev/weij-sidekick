@@ -11,7 +11,7 @@ Overview
     and the state ends the moment the first sentence is ready; if they talk again meanwhile the
     listening pose returns at once. Thinking no longer looks away: the owner read the sideways
     glances as looking around (「说话过程又有东张西望」, block #80), so in a conversation the eyes
-    stay on the person and the face servo keeps running while Bobby thinks. A `yield` beat ends a reply (your turn); while they talk, a small `mm_hm`
+    stay on the person and the face servo keeps running while Banana thinks. A `yield` beat ends a reply (your turn); while they talk, a small `mm_hm`
     nod at their pauses. While idle it keeps a
     social presence on its own: **scanning glances** (every 8–15 s a slow look at a random
     direction within ±40°, held a few seconds, back to neutral — the camera's horizontal field
@@ -25,7 +25,7 @@ Design
     `DOA_MIN_AGREEMENT`; a segment's direction is the median of its readings, block #80), only
     when the new direction differs from the current look by ≥ 15°, and never while a face is
     tracked — by the daemon or by our own servo within the last `FACE_RECENT_S`. Inside a
-    session the person is usually where Bobby already looks and even a median direction
+    session the person is usually where Banana already looks and even a median direction
     wanders ±15–30° for a source that does not move (a test from the Mac's speaker read −8°,
     24°, 2°), so a turn there needs ≥ 20° and **two accepted segments in a row** agreeing on
     the new direction within `TURN_AGREE_RAD`; one stray reading never moves the head. The **face servo** runs on every detection: the pixel offset of
@@ -378,7 +378,7 @@ class Attention:
                 self.mode = "engaged" if self.engaged else "idle"
 
     def heard_again(self) -> None:
-        """They talk while Bobby thinks: back to the listening pose at once."""
+        """They talk while Banana thinks: back to the listening pose at once."""
         if self.thinking_now:
             self.end_thinking(0.25)
             self.body.listening()

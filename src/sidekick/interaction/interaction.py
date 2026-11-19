@@ -22,7 +22,7 @@ Design
       ends on timeout, closing phrase or repeated `NO_REPLY`. Speech that began before the
       silence ran out holds the session until it ends: the timer used to close it under people
       who were mid-sentence (13 times on 10-30/31, block #92). Only the name, with no speech
-      after it: Bobby answers out loud at once (`call.py`), and the session waits as after a
+      after it: Banana answers out loud at once (`call.py`), and the session waits as after a
       question.
     - SPEAKING: qualifying speech ducks playback; ≥ 0.7 s, a stop word, the wake name or a touch
       cancels the running turn and the buffered utterance becomes the next turn; a short
@@ -52,8 +52,8 @@ Design
     (block #63).
 
     **Who is speaking (block #80).** An utterance with less than `MIN_ID_SPEECH_S` of speech is
-    not identified (a 0.7 s "Bobby" in a clip that is mostly pre-roll embeds the room), and
-    less than `MIN_PERSON_SPEECH_S` never starts a new person. A voice in the uncertain band of
+    not identified (a 0.7 s call of the name in a clip that is mostly pre-roll embeds the room),
+    and less than `MIN_PERSON_SPEECH_S` never starts a new person. A voice in the uncertain band of
     a contact (`Identification.near`) is not a stranger either: no new person, and inside a
     session it counts as the session's speaker, and once `SESSION_MEAN_MIN` uncertain
     utterances of a session average out at the threshold the session is that contact (the
@@ -227,7 +227,7 @@ class InteractionSession:
         self.contacts, self.perception = contacts, perception
         self.default_language = default_language
         self.names = NameSpotter(
-            getattr(robot, "name", "Bobby"),
+            getattr(robot, "name", "Banana"),
             getattr(robot, "aliases", []),
             float(getattr(config, "name_match_threshold", 0.75)),
         )
@@ -570,7 +570,7 @@ class InteractionSession:
             self._speech_onset = None if event.self_motion else event.ts
             self._onset_self_motion = event.self_motion
             if machine.state == InteractionState.ENGAGED and not event.self_motion:
-                self.attention.heard_again()  # they talk while Bobby thinks: listen again
+                self.attention.heard_again()  # they talk while Banana thinks: listen again
                 self._warm_responder()
             if machine.state == InteractionState.SPEAKING:
                 # our own motors (a gesture, a turn) never duck the voice
@@ -998,7 +998,7 @@ class InteractionSession:
         remainder = (decision.text or "").strip()
         session = machine.session
         if name is not None and name.hit and not remainder:
-            # Only the name was said: the antennas flick and Bobby answers the call out loud.
+            # Only the name was said: the antennas flick and Banana answers the call out loud.
             self.attention.acknowledge()
             self._answer_call(
                 speaker or guest or (session.speaker if session is not None else None)
@@ -1025,7 +1025,7 @@ class InteractionSession:
         return matched / len(heard)
 
     def _merge_short_segment(self, clip: AudioClip, now: float) -> tuple[AudioClip, bool]:
-        """Prepend a recent short, content-less segment ("Bobby," split off by a pause)."""
+        """Prepend a recent short, content-less segment ("Banana," split off by a pause)."""
         pending, self._short_segment = self._short_segment, None
         if pending is None:
             return clip, False
@@ -1530,16 +1530,16 @@ class InteractionSession:
             else:
                 self.barge.reset()
                 self.attention.set_engaged(True)
-                if only_name:  # 「芭比芭比！」 over a story: stop, then answer the call
+                if only_name:  # the name called over a story: stop, then answer the call
                     session = self.machine.session
                     self._answer_call(session.speaker if session else None)
 
     def _answer_call(self, speaker: str | None) -> None:
         """Only the name: answer out loud now (block #92), unless they are already going on.
 
-        A nod and the antennas were all a first-time caller got, and they thought Bobby was
+        A nod and the antennas were all a first-time caller got, and they thought Banana was
         broken. The answer is a clip made at start, so it plays as soon as the name is
-        recognised; when they already speak again ("Bobby, … 今日天氣點呀"), their sentence is
+        recognised; when they already speak again ("Banana, … 今日天氣點呀"), their sentence is
         the answer and nothing is said.
         """
         if self._speech_since is not None:
@@ -1576,7 +1576,7 @@ class InteractionSession:
             machine.session.asked = True  # the answer invites them: wait as after a question
 
     def _cancel_call(self) -> None:
-        """Their sentence comes in while Bobby answers the call: the answer stops."""
+        """Their sentence comes in while Banana answers the call: the answer stops."""
         task = self._call_task
         if task is not None and not task.done():
             task.cancel()
@@ -1916,7 +1916,7 @@ class InteractionSession:
     def activity(self, since: float = 0.0, limit: int = 30) -> list[dict[str, Any]]:
         """Decisions for the Live activity stream, newest first.
 
-        Accepted ones, barge-ins, sessions, touches and Bobby's own lines; a rejected ambient
+        Accepted ones, barge-ins, sessions, touches and Banana's own lines; a rejected ambient
         segment (the TV, people talking to each other) is left to the Voice page.
         """
         rows = []

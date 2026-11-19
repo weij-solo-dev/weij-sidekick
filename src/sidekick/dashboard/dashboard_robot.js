@@ -1,6 +1,6 @@
 /* sidekick dashboard — Body page: the controller that takes the body over through /api/robot/*
    (sliders for head / height / body yaw / antennas, gestures), the Expressions card
-   (Bobby's own library by kind, with an intensity and a thinking preview; /api/body/express
+   (Banana's own library by kind, with an intensity and a thinking preview; /api/body/express
    plays by hand while the controller holds the body) plus the capability tests: microphone
    capture, speaker tone / sweep / replay, say text, camera snapshot, video clip. The live data
    comes from dashboard_live.js; this script subscribes to it for the level labels. */

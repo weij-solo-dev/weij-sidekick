@@ -69,19 +69,19 @@
     if (r.role === "user") { const name = nameOf(r.speaker); return msg("user", String(name).slice(0, 1).toUpperCase(), r.content, [name, channel, stamp(r.ts), r.visibility === "private" ? "private" : ""]); }
     const cues = [...r.content.matchAll(CUE)].map((m) => `${m[1]}: ${m[2].trim()}`);
     const own = r.meta && r.meta.delivery ? `主動${r.delivered_to ? " → " + (CHANNEL[r.delivered_to] || r.delivered_to) : ""}` : "";
-    return msg("bot", "B", r.content.replace(CUE, "").trim() || r.content, ["Bobby", channel, own, stamp(r.ts), cues.join(", ")]);
+    return msg("bot", "B", r.content.replace(CUE, "").trim() || r.content, ["Banana", channel, own, stamp(r.ts), cues.join(", ")]);
   }
   const liveMessage = (l) => (l.who === "hearing"
     ? msg("user live", "…", l.text, ["聽緊講"], " pulse")
-    : msg("bot live", "B", l.text, ["Bobby", l.pulse ? "" : "講緊"], l.pulse ? " pulse" : ""));
-  // the empty state: an invitation when Bobby is ready, the readiness verdict when it is not
+    : msg("bot live", "B", l.text, ["Banana", l.pulse ? "" : "講緊"], l.pulse ? " pulse" : ""));
+  // the empty state: an invitation when Banana is ready, the readiness verdict when it is not
   function emptyState() {
     const r = window.SidekickApp && window.SidekickApp.readiness ? window.SidekickApp.readiness() : null;
     if (r && r.ready === false) {
       const blocking = (r.items || []).filter((i) => i.level === "bad").map((i) => esc(i.title));
-      return `<div class="empty"><h1>Bobby 未準備好</h1><p>${esc(r.summary)}${blocking.length ? "：" + blocking.join("、") : ""}。System 頁列出差咩、去邊度補。</p><div class="ready-call"><button class="primary" data-readiness-run>檢查就緒</button> <button data-go="system">睇 System</button></div></div>`;
+      return `<div class="empty"><h1>Banana 未準備好</h1><p>${esc(r.summary)}${blocking.length ? "：" + blocking.join("、") : ""}。System 頁列出差咩、去邊度補。</p><div class="ready-call"><button class="primary" data-readiness-run>檢查就緒</button> <button data-go="system">睇 System</button></div></div>`;
     }
-    return '<div class="empty"><h1>Bobby 在聽</h1><p>講一聲「Bobby」開始對話。聽到同講出嘅嘢、Telegram 同微信嘅訊息都會顯示喺呢度。</p></div>';
+    return '<div class="empty"><h1>Banana 在聽</h1><p>講一聲「Banana」開始對話。聽到同講出嘅嘢、Telegram 同微信嘅訊息都會顯示喺呢度。</p></div>';
   }
   function renderRows(keepTop) {
     const before = { height: scroller.scrollHeight, top: scroller.scrollTop, bottom: nearBottom() };
@@ -148,9 +148,9 @@
   function captions(c, inter) {
     if (!c) return;
     const running = !!c.turn_running || !!(inter && inter.speaking);
-    if (c.said && running) liveLine = { who: "bobby", text: c.said };
+    if (c.said && running) liveLine = { who: "robot", text: c.said };
     else if (c.listening) liveLine = { who: "hearing", text: "聆聽中…" };
-    else if (running) liveLine = { who: "bobby", text: "思考中…", pulse: true };
+    else if (running) liveLine = { who: "robot", text: "思考中…", pulse: true };
     else liveLine = null;
     const heard = !!c.heard_at && c.heard_at !== lastHeardAt;
     if (heard) lastHeardAt = c.heard_at;
@@ -266,7 +266,7 @@
           + `<div class="turn-text"><div>${last.kind === "job" ? "job" : "heard"}</div><div>${esc(last.text || "–")}</div><div>said</div><div>${esc(last.said || (last.outcome === "no_reply" ? "NO_REPLY" : "–"))}</div></div>` + chips(last.tools);
         lvl = last.outcome === "error" ? "bad" : level(last.first_token_ms, 1500, 3000);
       } else {
-        html = '<span class="dim">no turn yet — say “Bobby”</span>';
+        html = '<span class="dim">no turn yet — say “Banana”</span>';
       }
     }
     $("turn-sub").textContent = sub || "the turn in progress, else the last";
@@ -275,7 +275,7 @@
   }
 
   // ---------------------------------------------------------------- one card per core module
-  // while Bobby's service is stopped the runtime modules are off on purpose: no red dots for them
+  // while Banana's service is stopped the runtime modules are off on purpose: no red dots for them
   const RUNTIME_CARDS = new Set(["body", "perception", "channel", "record", "extension", "agent", "automation", "services"]);
   let serviceState = null;
   function card(key, lvl, sub, rows) {

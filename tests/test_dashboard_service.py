@@ -1,4 +1,4 @@
-"""The power control's routes, what a stopped Bobby refuses, and the loopback guard (block #87)."""
+"""The power control's routes, what a stopped Banana refuses, and the loopback guard (block #87)."""
 
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ def test_power_control_routes(client):
     assert test_client.post("/api/service", json={"action": "reboot"}).status_code == 422
 
 
-def test_a_stopped_bobby_refuses_what_needs_it(client):
+def test_a_stopped_banana_refuses_what_needs_it(client):
     test_client, _ = client
     for method, path, body in (
         ("post", "/api/say", {"text": "hi"}),

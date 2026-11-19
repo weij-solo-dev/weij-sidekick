@@ -545,9 +545,9 @@ class TurnPipeline:
     def _wait_spoken(self, chars: int) -> bool:
         """Block until the speaker has played what the turn queued.
 
-        A turn is over when Bobby stops talking, not after a fixed wait: the 30 s cap this
+        A turn is over when Banana stops talking, not after a fixed wait: the 30 s cap this
         replaced declared a 50 s story finished 20 s early, and the session's silence timeout
-        ran out while Bobby was still telling it (block #89). Bounded by the reply's length
+        ran out while Banana was still telling it (block #89). Bounded by the reply's length
         (no voice is slower than two characters a second) in case the player never drains.
         """
         cap = time.monotonic() + 30.0 + chars / 2.0

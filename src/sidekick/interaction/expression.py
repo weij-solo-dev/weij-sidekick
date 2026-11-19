@@ -2,7 +2,7 @@
 
 Overview
     The agent emits text plus optional tags (invariant 7: it never drives motors).
-    `[express:name]` plays one of Bobby's own expressions (`body/expression_library.json`, by
+    `[express:name]` plays one of Banana's own expressions (`body/expression_library.json`, by
     name or by one of its aliases — `happy` → `delighted`, `laughing` → `laugh`, `是` → `nod`)
     and `[style:lively]` / `[style:calm]` / `[style:natural]` sets how big the rest of the reply
     is performed. `split_tags()` takes both out of the text so they are never spoken.

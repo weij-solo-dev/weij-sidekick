@@ -23,7 +23,7 @@ from sidekick.vad import VADSession
 
 pytestmark = pytest.mark.network
 
-SAMPLE_TEXT = "Bobby，今日天氣好好，我哋一齊去公園玩吖。"
+SAMPLE_TEXT = "Banana，今日天氣好好，我哋一齊去公園玩吖。"
 
 
 @pytest.fixture(scope="module")
@@ -56,7 +56,7 @@ def test_probe_all_slots(live):
 
 def test_llm_fast_and_smart_and_tools(live):
     system = LLMMessage(
-        "system", "你係 Bobby，一個住喺屋企嘅機械人管家。用口語化嘅書面粵語簡短回答。"
+        "system", "你係 Banana，一個住喺屋企嘅機械人管家。用口語化嘅書面粵語簡短回答。"
     )
 
     async def run():
@@ -171,7 +171,7 @@ def test_tts_ws_streaming_turn(live):
         t1 = time.monotonic()
         collector = asyncio.create_task(collect())
         for fragment in [
-            "Bobby",
+            "Banana",
             "，",
             "今日",
             "天氣",

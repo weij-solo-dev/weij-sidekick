@@ -30,6 +30,32 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+# The robot's name is its wake name and is fixed here, not per home (block #9). It was "Bobby"
+# until block #94; a home that still carries another name gets these on load.
+ROBOT_NAME = "Banana"
+# How SenseVoice spelled "banana" from Mandarin and English voices (block #94): Latin capitals
+# with a doubled or dropped letter, now and then the Chinese syllables. Aliases are matched as
+# they are written; only the name itself is matched loosely.
+ROBOT_ALIASES = (
+    "banana",
+    "bananna",
+    "ananna",
+    "banaa",
+    "baana",
+    "bnaa",
+    "把娜娜",
+    "巴娜娜",
+    "芭娜娜",
+    "爸娜娜",
+    "吧娜娜",
+)
+# Keyword-spotter lines: the lexicon's phones and the long-a variant (block #94). Pinyin lines
+# found fewer and fired on 「把那边的那个拿过来」.
+ROBOT_KEYWORDS = (
+    "B AH0 N AE1 N AH0 @banana",
+    "B AH0 N AA1 N AH0 @banana",
+)
+
 SERVICES = ("llm", "asr", "tts", "vad")
 SLOT_NAMES: dict[str, tuple[str, ...]] = {
     "llm": ("fast", "smart"),
@@ -164,37 +190,15 @@ class ConfigRobot(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    name: str = Field(default="Bobby", description="the wake name (fixed)")
+    name: str = Field(default=ROBOT_NAME, description="the wake name (fixed)")
     aliases: list[str] = Field(
-        description="how SenseVoice may spell the name (fuzzy matched)",
-        default_factory=lambda: [
-            "bobby",
-            "bob",
-            "boby",
-            "bobe",
-            "bobbie",
-            "bobi",
-            "波比",
-            "巴比",
-            "寶比",
-            "宝比",
-            "波畢",
-            "bo比",
-            "芭比",
-            "b比",
-        ],
+        description="how SenseVoice spells the name (matched as written; the name itself"
+        " also loosely, word by word)",
+        default_factory=lambda: list(ROBOT_ALIASES),
     )
     keywords: list[str] = Field(
         description="keyword-spotter lines: CMU phones (English) or pinyin (Chinese) @label",
-        default_factory=lambda: [
-            "B AA1 B IY0 @bobby",
-            "B AO1 B IY0 @bobby",
-            "B OW1 B IY0 @bobby",
-            "B AO1 B EY1 @bobby",
-            "b ō b ǐ @波比",
-            "b ā b ǐ @巴比",
-            "b ǎo b ǐ @寶比",
-        ],
+        default_factory=lambda: list(ROBOT_KEYWORDS),
     )
 
 
@@ -203,7 +207,7 @@ class ConfigSway(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    enabled: bool = Field(default=True, description="the head sways with Bobby's own voice")
+    enabled: bool = Field(default=True, description="the head sways with Banana's own voice")
     master: float = Field(
         default=0.5,
         ge=0.0,
@@ -282,7 +286,7 @@ class ConfigBody(BaseModel):
         default=1.0,
         ge=0.0,
         le=1.6,
-        description="how big Bobby's expressions and speech movements are overall (the "
+        description="how big Banana's expressions and speech movements are overall (the "
         "household's taste); a story can be livelier and comfort calmer on top of it",
     )
     sway: ConfigSway = Field(default_factory=ConfigSway)  # our speech sway (block #42)
@@ -347,7 +351,7 @@ class ConfigInteraction(BaseModel):
         default=15.0,
         ge=0.0,
         le=60.0,
-        description="silence that ends a session after Bobby asked a question (s)",
+        description="silence that ends a session after Banana asked a question (s)",
     )
     no_reply_limit: int = Field(default=2, description="NO_REPLY answers in a row that end it")
     closing_phrases: list[str] = Field(
@@ -355,7 +359,7 @@ class ConfigInteraction(BaseModel):
         default_factory=lambda: ["再見", "再见", "就這樣", "就这样", "多謝", "多谢", "bye", "拜拜"],
     )
     stop_words: list[str] = Field(
-        description="words that stop Bobby mid-sentence",
+        description="words that stop Banana mid-sentence",
         default_factory=lambda: ["停", "等一下", "等陣", "等阵", "stop", "收聲", "收声"],
     )
     backchannels: list[str] = Field(
@@ -371,12 +375,12 @@ class ConfigInteraction(BaseModel):
         default=0.5, description="own-voice similarity above which speech counts as echo"
     )
     self_sector_tolerance_rad: float = Field(
-        default=0.45, description="sound within this of the speaker direction is Bobby's (rad)"
+        default=0.45, description="sound within this of the speaker direction is Banana's (rad)"
     )
     pre_roll_s: float = Field(default=1.0, description="audio kept before speech onset (s)")
     duck_db: float = Field(default=-12.0, description="playback drop when someone speaks (dB)")
     hard_stop_speech_s: float = Field(
-        default=0.9, description="speech this long stops Bobby outright (s)"
+        default=0.9, description="speech this long stops Banana outright (s)"
     )
     name_match_threshold: float = Field(default=0.8, description="fuzzy wake-name score needed")
     tv_sector: list[float] | None = Field(
@@ -432,7 +436,7 @@ class ConfigInteraction(BaseModel):
     sound_glance_min_dbfs: float = Field(default=-35.0, description="sound level needed (dBFS)")
     sound_glance_min_s: float = Field(default=0.6, description="sound duration needed (s)")
     sound_glance_hold_s: float = Field(default=3.0, ge=0.5, description="hold the look (s)")
-    # Initiative layer (speaks first, through the agent): how talkative Bobby may be.
+    # Initiative layer (speaks first, through the agent): how talkative Banana may be.
     # quiet = never speak first; normal = greet a known person after 2 h away (6 / day);
     # chatty = after 30 min (12 / day). Safety events are not subject to this setting.
     sociability: Literal["quiet", "normal", "chatty"] = Field(
@@ -525,7 +529,7 @@ class ConfigAutomation(BaseModel):
         default=30,
         ge=0,
         description=(
-            "how often Bobby checks on its own whether there is news the household has not"
+            "how often Banana checks on its own whether there is news the household has not"
             " heard (one agent turn, usually silent), in minutes; 0 turns the heartbeat off"
         ),
     )
@@ -606,7 +610,7 @@ class ConfigContacts(BaseModel):
     tv_zone: list[float] | None = Field(
         default=None, description="camera rectangle x y w h (0 … 1) whose faces are ignored"
     )
-    enroll_self: bool = Field(default=True, description="enroll Bobby's own voice at start")
+    enroll_self: bool = Field(default=True, description="enroll Banana's own voice at start")
 
 
 class ConfigSpec(BaseModel):

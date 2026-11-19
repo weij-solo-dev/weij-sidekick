@@ -1,7 +1,7 @@
 """sidekick.automation.automation — AutomationSession: jobs, the scheduler, event jobs, heartbeat
 
 Overview
-    Everything that makes Bobby act at a time or on an event: reminders and recurring tasks
+    Everything that makes Banana act at a time or on an event: reminders and recurring tasks
     (`cron` / `at` jobs), `event` jobs fired by the perception bus (an extension's `befriend` on
     `person.ready`, `greet` on `greet.due`, a user's "when someone comes home, tell me"), and
     the heartbeat. A due job becomes one main-agent turn whose answer is delivered by policy —
@@ -19,7 +19,7 @@ Design
     (block #55): off stops the scheduler, ignores events, pauses the heartbeat and withdraws the
     tools, so the agent never promises a reminder nothing will speak; quiet hours silence the
     heartbeat, never a user's reminder. Changes from the dashboard apply live (`set_config`).
-    Jobs that fell due while Bobby's service was stopped run at the first tick after a start,
+    Jobs that fell due while Banana's service was stopped run at the first tick after a start,
     a late one with its original time in the prompt (block #87); a task that only made sense at
     its time — a wake-up call three hours late — is reported as missed instead (block #89).
     `check()` reports the scheduler and how many were sent.
@@ -52,7 +52,7 @@ from .scheduler import Scheduler
 from .schemas import Job
 from .tools import ORIGIN, automation_tools
 
-LATE_S = 120.0  # a job run this long after its time was missed (Bobby was stopped): said so
+LATE_S = 120.0  # a job run this long after its time was missed (Banana was stopped): said so
 
 
 class AutomationSession:
@@ -130,7 +130,7 @@ class AutomationSession:
             await self.scheduler.stop()
 
     def check(self) -> list[dict[str, Any]]:
-        """Readiness items: the scheduler, and the jobs that fell due while Bobby was stopped."""
+        """Readiness items: the scheduler, and the jobs that fell due while Banana was stopped."""
         if not self.enabled:
             return [{"id": "scheduler", "title": "automation", "level": "off", "detail": "off"}]
         running = self.scheduler is not None and self.scheduler.running
@@ -199,7 +199,7 @@ class AutomationSession:
         elif job.next_run_ts is not None and time.time() - job.next_run_ts > LATE_S:
             due = time.strftime("%H:%M", time.localtime(job.next_run_ts))
             prompt = (
-                f"[scheduled task {job.name!r} was due at {due} but Bobby was stopped then; it"
+                f"[scheduled task {job.name!r} was due at {due} but Banana was stopped then; it"
                 f" runs now] {job.prompt}\n"
                 "Say what the person asked for and that it comes late, briefly. If it only made"
                 " sense at that time (a wake-up call, a timer, 'leave now'), do not do it now:"

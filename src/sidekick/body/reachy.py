@@ -14,7 +14,7 @@ Design
     flushes queued playback with `clear_player()` instead of pausing the pipeline. Expressions
     are ours (`expression.py`, played by the motion owner through `set_target`); the SDK's
     recorded-move library and `play_move()` are not used any more — they blocked the motion
-    thread and played a sound effect over Bobby's voice (blocks #46, #50). Provider-style failures (daemon gone,
+    thread and played a sound effect over Banana's voice (blocks #46, #50). Provider-style failures (daemon gone,
     connection lost) are logged and reflected in `status()`, never raised to the owner loop.
 Depends on
     sidekick.log, numpy, httpx, reachy_mini (lazy).
