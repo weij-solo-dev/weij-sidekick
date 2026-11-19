@@ -8,8 +8,11 @@ Overview
 Design
     The recognizer is built lazily on first use and guarded by a lock; decoding runs in a worker
     thread through `asyncio.to_thread` because sherpa-onnx is synchronous. The language is fixed
-    at construction (`auto` by default) — per-call `language` is recorded in the result but does
-    not rebuild the model, which costs ~250 MB each. The model archive is fetched from the
+    at construction — per-call `language` is recorded in the result but does not rebuild the
+    model, which costs ~250 MB each. The local preset takes it from the household language:
+    `zh` for a Mandarin household, `auto` otherwise. In `auto` some Mandarin sentences were
+    decoded as Cantonese (「把那个拿来」 → 「爸妈佢妈嚟」, block #94); the wake name, an English
+    word, is written much the same either way. The model archive is fetched from the
     sherpa-onnx GitHub release into `.derived_data/models/` by `ensure_model()`.
 Depends on
     sidekick.audio, sidekick.log, sidekick.storage, sherpa-onnx, numpy.

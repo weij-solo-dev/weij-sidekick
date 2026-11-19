@@ -42,7 +42,15 @@ from typing import Any
 from sidekick.llm import LLMInferOptions, LLMMessage, LLMSession, LLMToolCall
 from sidekick.log import Log
 
-from .schemas import NO_REPLY, REFUSAL_TEXT, AgentEvent, AgentProfile, Tool, ToolContext, ToolResult
+from .schemas import (
+    NO_REPLY,
+    REFUSAL_TEXTS,
+    AgentEvent,
+    AgentProfile,
+    Tool,
+    ToolContext,
+    ToolResult,
+)
 from .tools import ConfirmationGate
 
 StepHook = Callable[[str, dict[str, Any]], None]
@@ -50,8 +58,8 @@ StepHook = Callable[[str, dict[str, Any]], None]
 # #76): local tools answer within ~0.1 s, the camera and subagents take 4-6 s; rotated.
 ACK_AFTER_S = 0.4
 ACKNOWLEDGEMENTS = {
-    "yue": ("好，等我睇下。", "稍等吓。", "等我諗諗。"),
     "zh": ("好，我看看。", "稍等一下。", "让我想想。"),
+    "yue": ("好，等我睇下。", "稍等吓。", "等我諗諗。"),
     "en": ("Let me check.", "One moment.", "Let me think."),
 }
 
@@ -137,8 +145,9 @@ class ReActLoop:
                     # The provider's content policy refused the input: answer politely instead
                     # of surfacing the error (news items about politics trip MiniMax).
                     Log.warning(f"content refused by provider: {failure[:120]}")
-                    yield AgentEvent("text", REFUSAL_TEXT)
-                    yield AgentEvent("done", REFUSAL_TEXT)
+                    refusal = REFUSAL_TEXTS.get(self._language(ctx), REFUSAL_TEXTS["zh"])
+                    yield AgentEvent("text", refusal)
+                    yield AgentEvent("done", refusal)
                     return
                 yield AgentEvent("error", error=failure)
                 return
@@ -214,9 +223,13 @@ class ReActLoop:
             and not meta.get("internal")
         )
 
+    @staticmethod
+    def _language(ctx: ToolContext) -> str:
+        """The turn's language: the message's, else the household's."""
+        return str(ctx.message.language or getattr(ctx.session, "default_language", "zh"))
+
     def _acknowledgement(self, ctx: ToolContext) -> str:
-        language = ctx.message.language or getattr(ctx.session, "default_language", "yue")
-        options = ACKNOWLEDGEMENTS.get(str(language), ACKNOWLEDGEMENTS["yue"])
+        options = ACKNOWLEDGEMENTS.get(self._language(ctx), ACKNOWLEDGEMENTS["zh"])
         self._acks = getattr(self, "_acks", 0) + 1
         return options[self._acks % len(options)]
 

@@ -102,6 +102,59 @@ def test_session_contacts_and_remote_resolution(tmp_path):
     assert session.identify_face(np.zeros((120, 160, 3), np.uint8))[0].contact_id is None
 
 
+async def test_the_robots_own_voice_print_follows_the_tts_voice(tmp_path, monkeypatch):
+    """Block #94: the print is made from the TTS voice. Another voice (the household's language
+    changed) makes it again, in that language; the same voice does nothing."""
+    from sidekick.audio import AudioClip
+    from sidekick.config import ConfigContacts
+    from sidekick.contact.contact import SELF_ENROLL_TEXTS
+
+    StorageSession.shared = StorageSession(tmp_path / "home")
+    session = ContactSession()
+    voice: dict[str, str | None] = {"name": "minimax/Cantonese_crisp_news_anchor_vv2"}
+    said: list[str] = []
+    enrolled: list[str] = []
+
+    async def synthesize(text: str) -> AudioClip | None:
+        said.append(text)
+        return AudioClip.silence(1.0)
+
+    def setup(language: str) -> None:
+        session.setup(
+            tmp_path / "contact_v1.db",
+            tmp_path / "models",
+            ConfigContacts(),
+            synthesize=synthesize,
+            voice=lambda: voice["name"],
+            language=language,
+        )
+
+    def fake_enroll(contact_id: str, clips: object) -> int:
+        enrolled.append(contact_id)
+        return 3
+
+    monkeypatch.setattr(session, "enroll_voice", fake_enroll)
+    monkeypatch.setattr(session, "self_enrolled", lambda: bool(enrolled))
+    setup("yue")
+    assert not session.self_voice_changed()  # no print yet: nothing to compare
+    await session.start()
+    await session.stop()
+    assert enrolled == [SELF_ID] and said == list(SELF_ENROLL_TEXTS["yue"])
+    assert session.get(SELF_ID).notes.endswith("· minimax/Cantonese_crisp_news_anchor_vv2")
+    await session.start()
+    await session.stop()
+    assert enrolled == [SELF_ID]  # the same voice: nothing to do
+    voice["name"] = "minimax/Chinese (Mandarin)_Warm_Girl"
+    setup("zh")  # the service's next start, after the household's language changed
+    assert session.self_voice_changed()
+    await session.start()
+    await session.stop()
+    assert enrolled == [SELF_ID, SELF_ID] and said[3:] == list(SELF_ENROLL_TEXTS["zh"])
+    assert not session.self_voice_changed()
+    voice["name"] = None  # no TTS bound: nothing to compare with, the print stays
+    assert not session.self_voice_changed()
+
+
 @pytest.mark.slow
 def test_speaker_model_separates_bundled_clips():
     """Uses the KWS model's bundled LibriSpeech / WenetSpeech clips: same clip → high score."""

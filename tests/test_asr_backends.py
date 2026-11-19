@@ -123,7 +123,7 @@ async def test_sensevoice_local_model_decodes(tmp_path):
     # SenseVoice hallucinates a filler ("嗯") on pure silence; VAD gating upstream is what keeps
     # silence out of the recognizer, so only the plumbing is asserted here.
     assert silence.success and len(silence.text) <= 2 and silence.api == "sherpa_sensevoice"
-    sample = StorageSession().layout.cache_dir / "test_speech_yue.wav"
+    sample = StorageSession().layout.cache_dir / "test_speech_zh.wav"
     if sample.exists():
         spoken = await backend.transcribe(decode_wav(sample.read_bytes()))
         assert spoken.success and spoken.text

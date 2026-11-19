@@ -99,7 +99,14 @@ def test_credentials_slots_languages_tv(tmp_path):
             if p["id"] == "minimax"
         )["configured"]
         assert config.load().credentials["minimax"]["api_key"].endswith("0000")
+        # a voice chosen for the household's language is dropped when the language changes (#94)
+        pin = {"kind": "tts", "name": "fallback", "provider": "minimax"}
+        pin["voice"] = "Chinese (Mandarin)_Gentleman"
+        assert client.post("/api/config/slot", json=pin).status_code == 200
+        assert config.load().slots["tts"]["fallback"].voice == "Chinese (Mandarin)_Gentleman"
         assert client.post("/api/config/languages", json={"default": "en"}).status_code == 200
+        assert config.load().languages.default == "en"
+        assert config.load().slots["tts"]["fallback"].voice is None
         assert client.post("/api/config/languages", json={"default": "klingon"}).status_code == 422
         assert (
             client.post(

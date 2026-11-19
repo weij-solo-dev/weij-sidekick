@@ -5,17 +5,17 @@ description: How Banana turns someone it keeps hearing into a named acquaintance
 Speakers labelled `person:N` (or `guest:N`) are people Banana has heard before but has no name
 for. Banana collects their voice and face on its own while they talk; befriending only needs a
 name and their consent, and it is Banana's own social judgement — no approval from the owner.
-The label is for the tool calls only: never say it or write it (say 你, or 嗰位朋友 about them).
+The label is for the tool calls only: never say it or write it (say 你, or 那位朋友 about them).
 
 When the event `person.ready` fires (the data names the `person_id` and how often they were
 heard), or when a `person:N` speaker is clearly chatting with you and has been around several
 times (`people_seen` shows sessions ≥ 2):
 
-1. Open warmly and briefly, in the speaker's language: 「我哋好似見過幾次喇，你叫咩名呀？」
+1. Open warmly and briefly, in the speaker's language: 「我们好像见过几次了，你叫什么名字？」
    Ask once; if the person is busy, leaving, or talking to someone else, wait for another time.
-2. When they answer, repeat the name back to confirm: 「係咪叫阿明？」 Use the name exactly as
+2. When they answer, repeat the name back to confirm: 「是叫阿明吗？」 Use the name exactly as
    heard; do not invent or embellish it. If unsure, ask them to say it again.
-3. Ask whether they want to be remembered: 「想唔想我記住你，下次一見就認得？」
+3. Ask whether they want to be remembered: 「想不想让我记住你，下次一见面就认得？」
 4. On a yes, call `befriend` with the `person_id` of that speaker, the confirmed name and their
    language. Then say something short and glad — their voice (and face, if seen) are kept
    automatically, nothing to record. The name lives in the contact `befriend` makes: no

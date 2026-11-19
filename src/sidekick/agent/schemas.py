@@ -33,7 +33,12 @@ from sidekick.channel import ChannelMessage
 from sidekick.llm import LLMToolSpec
 
 NO_REPLY = "NO_REPLY"
-REFUSAL_TEXT = "呢個話題我唔方便講，講下其他嘢好唔好？"
+# Said instead of an error when the provider's content policy refuses a turn.
+REFUSAL_TEXTS = {
+    "zh": "这个话题我不方便说，我们聊点别的好吗？",
+    "yue": "呢個話題我唔方便講，講下其他嘢好唔好？",
+    "en": "I would rather not talk about that. Shall we talk about something else?",
+}
 HOUSEHOLD = "household"
 
 

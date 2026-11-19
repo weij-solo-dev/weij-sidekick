@@ -67,8 +67,8 @@ MERGE_MIN_FACTS = 30
 MERGE_MAX_SHARE = 0.25
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 LANGUAGE_NAMES = {
-    "yue": "colloquial written Cantonese in Traditional Chinese characters (係 / 唔 / 嘅)",
     "zh": "Mandarin Chinese in Simplified characters",
+    "yue": "colloquial written Cantonese in Traditional Chinese characters (係 / 唔 / 嘅)",
     "en": "English",
 }
 
@@ -83,7 +83,7 @@ title: at most 40 characters — what the conversation was about.
 summary: at most 300 characters — what happened and what was agreed, naming the people (the
 participants are listed below; an unnamed person is "{visitor}"). Plain facts, no judgement.
 Leave health, money and relationship details out of the summary (they may only be facts).
-followups: a question Banana could ask after a dated event the conversation mentions ("睇牙順唔順利？"
+followups: a question Banana could ask after a dated event the conversation mentions ("看牙顺利吗？"
 after the dentist), due on the day of the event or the day after:
 {{"who": "<participant id or household>", "text": "<the question>", "due": "YYYY-MM-DD"}}.
 Not reminders — those are scheduled separately. Usually none.
@@ -96,17 +96,17 @@ health, how they like Banana to talk. Each one:
 "text": "<one short sentence in the third person, with the person's name>", "valid_until": "YYYY-MM-DD" or null}}
 Rules for facts:
 - Only what the people said or clearly showed; never what Banana said or guessed.
-- One fact per sentence, third person, with the name ("爸爸鍾意飲凍檸茶"), never 我 / 你 / I / you;
+- One fact per sentence, third person, with the name ("爸爸喜欢喝冻柠茶"), never 我 / 你 / I / you;
   each must make sense on its own months later — skip vague ones.
-- Something said about another person keeps who said it ("爸爸話媽媽鍾意榴槤"); a household
+- Something said about another person keeps who said it ("爸爸说妈妈喜欢榴莲"); a household
   fact needs no teller in its text.
 - Health, money and relationships only when people said them about themselves — then they
-  are worth keeping (they stay private): "爸爸膝頭哥痛，呢排唔想行山".
-- Requests and reminders are not facts ("提我訂位" belongs to the schedule).
+  are worth keeping (they stay private): "爸爸膝盖痛，最近不想爬山".
+- Requests and reminders are not facts ("提醒我订位" belongs to the schedule).
 - If a known fact (listed below) already says it, leave it out; if it changed, "supersede" it.
 - Skip greetings, small talk, jokes, questions Banana answered, one-off requests already done,
   and anything about unnamed visitors.
-- Dates: work them out with the calendar below ("下個禮拜三" is Wednesday of next week).
+- Dates: work them out with the calendar below ("下个星期三" is Wednesday of next week).
   Birthdays and anniversaries come back every year: day and month, no year, no valid_until.
   Something that ends (an appointment, a trip) gets valid_until.
 - Usually zero to three facts; never more than eight.
@@ -169,7 +169,7 @@ class MemoryWriter:
         name: Callable[[str], str] | None = None,
         named: Callable[[str], bool] | None = None,
         busy: Callable[[], bool] | None = None,
-        language: str = "yue",
+        language: str = "zh",
         enabled: bool = True,
         nightly_hour: int = 3,
     ) -> None:
@@ -321,7 +321,7 @@ class MemoryWriter:
             if (not private and f.visibility == "public") or f.scope == private_to
         }
         today = time.strftime("%Y-%m-%d")
-        visitor = {"yue": "一位訪客", "zh": "一位访客"}.get(self.language, "a visitor")
+        visitor = {"zh": "一位访客", "yue": "一位訪客"}.get(self.language, "a visitor")
         system = WRITER_ROLE.format(
             language=LANGUAGE_NAMES.get(self.language, self.language),
             visitor=visitor,

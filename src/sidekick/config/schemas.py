@@ -63,7 +63,8 @@ SLOT_NAMES: dict[str, tuple[str, ...]] = {
     "tts": ("primary", "fallback"),
     "vad": ("primary",),
 }
-LANGUAGES = ("yue", "zh", "en")
+# Mandarin first since block #94 (the household's language until then was Cantonese).
+LANGUAGES = ("zh", "en", "yue")
 
 
 class ConfigCredentialField(BaseModel):
@@ -179,7 +180,7 @@ class ConfigLanguages(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    default: str = Field(default="yue", description="household language: yue / zh / en")
+    default: str = Field(default="zh", description="household language: zh / en / yue")
     order: list[str] = Field(
         default_factory=lambda: list(LANGUAGES), description="preference order for mixed speech"
     )
@@ -356,15 +357,37 @@ class ConfigInteraction(BaseModel):
     no_reply_limit: int = Field(default=2, description="NO_REPLY answers in a row that end it")
     closing_phrases: list[str] = Field(
         description="words that end a session",
-        default_factory=lambda: ["再見", "再见", "就這樣", "就这样", "多謝", "多谢", "bye", "拜拜"],
+        default_factory=lambda: [
+            "再见",
+            "再見",
+            "就这样",
+            "就這樣",
+            "谢谢",
+            "謝謝",
+            "多谢",
+            "多謝",
+            "bye",
+            "拜拜",
+        ],
     )
     stop_words: list[str] = Field(
         description="words that stop Banana mid-sentence",
-        default_factory=lambda: ["停", "等一下", "等陣", "等阵", "stop", "收聲", "收声"],
+        default_factory=lambda: [
+            "停",
+            "等一下",
+            "别说了",
+            "闭嘴",
+            "安静",
+            "stop",
+            "等陣",
+            "等阵",
+            "收聲",
+            "收声",
+        ],
     )
     backchannels: list[str] = Field(
         description="short acknowledgements that never interrupt",
-        default_factory=lambda: ["嗯", "好", "哦", "係", "是", "ok"],
+        default_factory=lambda: ["嗯", "好", "哦", "是", "对", "好的", "行", "係", "ok"],
     )
     fillers: list[str] = Field(
         description="content-less syllables ignored by the name check",

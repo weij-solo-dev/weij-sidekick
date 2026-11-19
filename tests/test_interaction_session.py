@@ -222,7 +222,7 @@ async def test_wake_name_turn_and_timeout(stack):
             responder.messages[0].channel == "voice"
             and responder.messages[0].text == "今日天氣點呀？"
         )
-        assert primary.calls and primary.calls[0][1] == "yue"
+        assert primary.calls and primary.calls[0][1] == "zh"  # the household's language
         assert fake_tts.streams and fake_tts.streams[0].sent[0].startswith("今日好天呀")
         assert backend.spoken_seconds() > 0.3
         assert turn.timing.first_audio_ms is not None and turn.timing.total_ms is not None
@@ -262,7 +262,7 @@ async def test_only_the_name_is_answered_out_loud_at_once(stack):
             lambda: any(r["reason"] == "call answered" for r in session.recent), 10.0
         )
         row = next(r for r in session.recent if r["reason"] == "call answered")
-        assert row["reply"] in CALL_ANSWERS["yue"]
+        assert row["reply"] in CALL_ANSWERS["zh"]
         assert responder.messages == [] and primary.calls == []
         assert session.machine.session is not None and session.machine.session.asked
         # what they say next is the turn, without the name

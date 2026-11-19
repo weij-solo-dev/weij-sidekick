@@ -3,7 +3,8 @@
 Overview
     `primary` is the streaming MiniMax WebSocket backend used by the voice pipeline; `fallback`
     is the HTTP backend. `infer` is traced; `open_stream` hands the live session to the caller;
-    `synthesize` returns one clip for callers that only need audio (Banana's own voice enrolment).
+    `synthesize` returns one clip for callers that only need audio (Banana's own voice enrolment)
+    and `voice()` names the voice it speaks with, so that enrolment is redone when it changes.
 Design
     Same shape as `LLMSession` / `ASRSession`. `open_stream` raises when the slot's backend has
     no streaming support so the pipeline can fall back deliberately. `synthesize` prefers the
@@ -145,6 +146,22 @@ class TTSSession:
         slot = "fallback" if self.is_ready("fallback") else slots[0]
         result = await self.infer(slot, text, task=task)
         return result.to_clip()
+
+    def voice(self) -> str | None:
+        """Which voice `synthesize` speaks with now (provider / voice id), None without TTS.
+
+        The robot's own voice print is made from `synthesize` and belongs to this voice: the
+        contact session enrolls it again when the answer changes (block #94).
+        """
+        slots = self.slots()
+        if not slots:
+            return None
+        backend = self._slots["fallback" if self.is_ready("fallback") else slots[0]]
+        configuration = getattr(backend, "configuration", None)
+        voice_id = getattr(configuration, "voice_id", None)
+        if not voice_id:
+            return None
+        return f"{getattr(configuration, 'provider', '') or 'tts'}/{voice_id}"
 
     async def open_stream(self, slot: str) -> TTSStream:
         """Open a live session on a streaming-capable slot."""

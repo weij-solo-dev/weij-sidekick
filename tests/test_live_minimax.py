@@ -1,8 +1,8 @@
 """Live checks against MiniMax and the local models.
 
 Run with `SIDEKICK_LIVE=1 poetry run pytest -m network -s tests/test_live_minimax.py`. They need
-`.derived_data/config.json` with a working key (`sidekick init --preset dev`). They also leave a
-Cantonese speech sample in `.derived_data/cache/test_speech_yue.wav` that the slow offline tests
+`.derived_data/config.json` with a working key (the dashboard's service cards). They also leave a
+Mandarin speech sample in `.derived_data/cache/test_speech_zh.wav` that the slow offline tests
 reuse.
 """
 
@@ -23,7 +23,7 @@ from sidekick.vad import VADSession
 
 pytestmark = pytest.mark.network
 
-SAMPLE_TEXT = "Banana，今日天氣好好，我哋一齊去公園玩吖。"
+SAMPLE_TEXT = "Banana，今天天气很好，我们一起去公园玩吧。"
 
 
 @pytest.fixture(scope="module")
@@ -56,14 +56,14 @@ def test_probe_all_slots(live):
 
 def test_llm_fast_and_smart_and_tools(live):
     system = LLMMessage(
-        "system", "你係 Banana，一個住喺屋企嘅機械人管家。用口語化嘅書面粵語簡短回答。"
+        "system", "你是 Banana，一个住在家里的机器人管家。用口语化的普通话简短回答。"
     )
 
     async def run():
         t0 = time.monotonic()
         fast = await LLMSession.shared.infer(
             "fast",
-            [system, LLMMessage("user", "早晨，今日係星期幾？")],
+            [system, LLMMessage("user", "早上好，今天星期几？")],
             LLMInferOptions(max_tokens=200),
             task="live",
         )
@@ -76,7 +76,7 @@ def test_llm_fast_and_smart_and_tools(live):
         t0 = time.monotonic()
         async for event in LLMSession.shared.stream(
             "fast",
-            [system, LLMMessage("user", "用一句話介紹你自己。")],
+            [system, LLMMessage("user", "用一句话介绍你自己。")],
             LLMInferOptions(max_tokens=200),
         ):
             if event.kind == "text":
@@ -93,7 +93,7 @@ def test_llm_fast_and_smart_and_tools(live):
         t0 = time.monotonic()
         smart = await LLMSession.shared.infer(
             "smart",
-            [system, LLMMessage("user", "用兩句話解釋為什麼天空係藍色。")],
+            [system, LLMMessage("user", "用两句话解释为什么天空是蓝色的。")],
             LLMInferOptions(max_tokens=400),
             task="live",
         )
@@ -116,7 +116,7 @@ def test_llm_fast_and_smart_and_tools(live):
         )
         result = await LLMSession.shared.infer(
             "fast",
-            [system, LLMMessage("user", "八點提我食藥。")],
+            [system, LLMMessage("user", "八点提醒我吃药。")],
             LLMInferOptions(tools=(tool,), max_tokens=200),
             task="live-tools",
         )
@@ -129,7 +129,7 @@ def test_llm_fast_and_smart_and_tools(live):
     asyncio.run(run())
 
 
-def test_tts_http_saves_cantonese_sample(live):
+def test_tts_http_saves_a_speech_sample(live):
     _, _, storage = live
 
     async def run():
@@ -141,7 +141,7 @@ def test_tts_http_saves_cantonese_sample(live):
         assert result.success and result.audio
         clip = result.to_clip()
         assert clip is not None and clip.duration_s > 1.5, clip.duration_s
-        path = storage.layout.cache_dir / "test_speech_yue.wav"
+        path = storage.layout.cache_dir / "test_speech_zh.wav"
         path.write_bytes(clip.to_wav_bytes())
         print(f"saved {path} ({clip.duration_s:.2f}s)")
 
@@ -173,14 +173,14 @@ def test_tts_ws_streaming_turn(live):
         for fragment in [
             "Banana",
             "，",
-            "今日",
-            "天氣",
-            "好好",
+            "今天",
+            "天气",
+            "很好",
             "。",
-            "我哋",
-            "一齊",
-            "去公園",
-            "玩吖。",
+            "我们",
+            "一起",
+            "去公园",
+            "玩吧。",
         ]:
             await stream.send(fragment)
             await asyncio.sleep(0.05)
@@ -198,12 +198,12 @@ def test_tts_ws_streaming_turn(live):
 
 def test_asr_cloud_and_local_on_sample(live):
     _, _, storage = live
-    path = storage.layout.cache_dir / "test_speech_yue.wav"
+    path = storage.layout.cache_dir / "test_speech_zh.wav"
     assert path.exists(), "run the TTS test first"
     clip = decode_wav(path.read_bytes())
 
     async def run():
-        for language in ("yue", None):
+        for language in ("zh", None):
             t0 = time.monotonic()
             cloud = await ASRSession.shared.transcribe("primary", clip, language, task="live")
             print(
@@ -224,7 +224,7 @@ def test_asr_cloud_and_local_on_sample(live):
 
 def test_vad_on_sample(live):
     _, _, storage = live
-    path = storage.layout.cache_dir / "test_speech_yue.wav"
+    path = storage.layout.cache_dir / "test_speech_zh.wav"
     clip = decode_wav(path.read_bytes())
     detector = VADSession.shared.create("primary")
     padded = AudioClip.silence(0.6).concat(clip).concat(AudioClip.silence(1.0))

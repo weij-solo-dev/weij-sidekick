@@ -48,7 +48,7 @@ def test_default_spec_binds_every_slot():
         "tts.fallback": "minimax",
         "vad.primary": "local",
     }
-    assert spec.languages.default == "yue" and spec.robot.name == "Banana"
+    assert spec.languages.default == "zh" and spec.robot.name == "Banana"  # block #94
     assert spec.credentials == {"minimax": {"api_key": ""}}
 
 
@@ -81,9 +81,9 @@ def test_resolve_merges_preset_slot_and_credentials(tmp_path):
     assert (
         tts.api == "minimax_ws"
         and tts.url.startswith("wss://")
-        and tts.voice.startswith("Cantonese")
+        and tts.voice == "Chinese (Mandarin)_Warm_Girl"  # Mandarin by default (block #94)
     )
-    assert tts.params["language_boost"] == "Chinese,Yue" and tts.params["sample_rate"] == 16000
+    assert tts.params["language_boost"] == "Chinese" and tts.params["sample_rate"] == 16000
     fallback = session.resolve(spec, "tts", "fallback")
     assert (
         fallback.api == "minimax_sync"
@@ -105,6 +105,7 @@ def test_resolve_merges_preset_slot_and_credentials(tmp_path):
 
     local = session.resolve(spec, "asr", "local")
     assert local.api == "sherpa_sensevoice" and local.credentials == {} and local.region == "global"
+    assert local.params["language"] == "zh"  # a Mandarin household tells SenseVoice so
     with pytest.raises(KeyError):
         session.resolve(ConfigSpec(), "llm", "fast")
 
@@ -246,3 +247,35 @@ def test_a_home_written_under_the_retired_name_takes_the_new_one(tmp_path):
     tuned["robot"]["aliases"] = ["banana", "把娜娜", "班娜娜"]
     session.path.write_text(json.dumps(tuned, ensure_ascii=False))
     assert session.load().robot.aliases == ["banana", "把娜娜", "班娜娜"]
+
+
+def test_voices_and_the_recogniser_follow_the_household_language(tmp_path):
+    """Block #94: the owner chose 普通话 on the dashboard and the robot went on in the Cantonese
+    voice both TTS slots carried; SenseVoice in `auto` took some Mandarin for Cantonese."""
+    session = ConfigSession(StorageSession(tmp_path))
+    spec = ConfigSession.default_spec(language="yue")
+    for name in ("primary", "fallback"):
+        spec.slots["tts"][name].voice = "Cantonese_crisp_news_anchor_vv2"
+    assert ConfigSession.drop_foreign_voices(spec) == []  # Cantonese voices in a Cantonese home
+    assert session.resolve(spec, "asr", "local").params["language"] == "auto"
+    mandarin = ConfigSession.with_language(spec, "zh")
+    assert spec.languages.default == "yue" and spec.slots["tts"]["primary"].voice  # a copy
+    assert mandarin.languages.default == "zh"
+    assert mandarin.slots["tts"]["primary"].voice is None
+    assert mandarin.slots["tts"]["fallback"].voice is None
+    tts = session.resolve(mandarin, "tts", "primary")
+    assert tts.voice == "Chinese (Mandarin)_Warm_Girl" and tts.params["language_boost"] == "Chinese"
+    assert session.resolve(mandarin, "asr", "local").params["language"] == "zh"
+    assert session.resolve(mandarin, "asr", "kws").params["keywords"] == list(ROBOT_KEYWORDS)
+    # a voice of the new language stays; so does one the catalog does not list (the owner's own)
+    mandarin.slots["tts"]["primary"].voice = "Chinese (Mandarin)_Gentleman"
+    mandarin.slots["tts"]["fallback"].voice = "my_cloned_voice"
+    again = ConfigSession.with_language(mandarin, "zh", ["zh", "en", "yue"])
+    assert again.slots["tts"]["primary"].voice == "Chinese (Mandarin)_Gentleman"
+    assert again.slots["tts"]["fallback"].voice == "my_cloned_voice"
+    assert again.languages.order == ["zh", "en", "yue"]
+    # a home left half-switched (a Mandarin household, a Cantonese voice) heals when loaded
+    half = ConfigSession.default_spec()
+    half.slots["tts"]["primary"].voice = "Cantonese_crisp_news_anchor_vv2"
+    session.save(half)
+    assert session.load().slots["tts"]["primary"].voice is None

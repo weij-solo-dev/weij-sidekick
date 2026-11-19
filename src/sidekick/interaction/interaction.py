@@ -159,7 +159,7 @@ class InteractionSession:
         self.responder: Responder | None = None
         self.contacts: Any = None
         self.perception: Any = None
-        self.default_language: str | None = "yue"
+        self.default_language: str | None = "zh"
         self.names: NameSpotter | None = None
         self.machine: EngagementMachine | None = None
         self.barge: BargeInController | None = None
@@ -212,7 +212,7 @@ class InteractionSession:
         responder: Responder,
         trace_path: Path | None = None,
         audio_dir: Path | None = None,
-        default_language: str | None = "yue",
+        default_language: str | None = "zh",
         shadow_asr: bool | None = None,
         asr_slot: str | None = None,
         contacts: Any = None,
@@ -363,7 +363,7 @@ class InteractionSession:
                 Log.warning(f"tts link not ready after {TTS_READY_S:.0f} s: {exc!r}")
         if self.tts is not None and self.tts.slots():
             # the answers to a bare call, in the household's voice, before anyone calls
-            languages = (self.default_language, "yue", "en", "zh")
+            languages = (self.default_language, "zh", "en", "yue")
             self._calls_task = asyncio.create_task(
                 self.calls.prepare(self.tts.synthesize, languages), name="call-answers"
             )

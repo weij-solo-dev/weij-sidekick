@@ -144,6 +144,8 @@ class App:
             layout.models_dir,
             spec.contacts,
             synthesize=TTSSession.shared.synthesize,
+            voice=TTSSession.shared.voice,
+            language=spec.languages.default,
         )
         self.perception.setup(
             self.body, layout.db_path("events"), spec.perception, contacts=self.contacts

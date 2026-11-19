@@ -339,6 +339,12 @@ async def test_content_refusal_becomes_a_polite_reply(session):
     text = await collect(s, "講下嗰單敏感新聞")
     assert "唔方便講" in text
     assert s.dialogue.recent(1)[0].role == "assistant"
+    # in the turn's language: a Mandarin turn is refused in Mandarin
+    mandarin = [
+        d
+        async for d in s.respond(ChannelMessage("voice", "dad", "说说那条敏感新闻", language="zh"))
+    ]
+    assert "不方便说" in "".join(mandarin)
 
 
 async def test_warm_is_throttled_and_keep_warm_runs(tmp_path, monkeypatch):

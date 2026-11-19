@@ -15,6 +15,12 @@ Design
     opaque vendor error with its code.
     `release()` unbinds every slot when Banana's service stops (each session closes the backend
     it drops); the service's start loads and applies the spec again (block #87).
+    Two things are settled when a spec is loaded (block #94): the robot's name is the code's —
+    a home written under a retired name takes the new name, aliases and keyword lines — and a
+    voice follows its slot's language: `drop_foreign_voices()` unpins a voice that belongs to
+    another language's list (what a change of the household language left behind), and
+    `with_language()` is that change, used by the dashboard. The household language also
+    reaches the on-host recogniser through the preset's `per_language` (`zh` → SenseVoice `zh`).
 Depends on
     sidekick.log, sidekick.storage, sidekick.audio, sidekick.llm, sidekick.asr, sidekick.tts,
     sidekick.vad.
@@ -144,8 +150,50 @@ class ConfigSession:
             for key in ("name", "aliases", "keywords"):
                 robot.pop(key, None)
         self.spec = ConfigSpec.model_validate(data) if data is not None else None
+        if self.spec is not None:
+            self.drop_foreign_voices(self.spec)
         Log.info(f"{'loaded' if self.spec else 'no'} spec at {self.path}")
         return self.spec
+
+    @staticmethod
+    def drop_foreign_voices(spec: ConfigSpec) -> list[str]:
+        """Unpin every voice that does not speak its slot's language; the slots changed.
+
+        A slot's card pins the voice chosen there, and the cards only offer the voices of the
+        household's language. A pinned voice from another language's list is what a change of
+        the household language left behind: the owner chose 普通话 on the dashboard and the
+        robot went on in the Cantonese voice both TTS slots carried (block #94). The slot then
+        takes its provider's default voice for the language.
+        """
+        changed = []
+        catalog = load_catalog()
+        for kind, name, slot in spec.bound_slots():
+            preset = catalog.get(slot.provider)
+            if not slot.voice or preset is None:
+                continue
+            language = slot.language or spec.languages.default
+            own = {voice.id for voice in preset.voices_for(language)}
+            listed = {voice.id for voices in preset.voices.values() for voice in voices}
+            if own and slot.voice not in own and slot.voice in listed:
+                Log.info(
+                    f"{kind}.{name}: the voice {slot.voice!r} is not a {language} voice; the"
+                    f" slot takes the default one ({preset.default_voice_for(language)})"
+                )
+                slot.voice = None
+                changed.append(f"{kind}.{name}")
+        return changed
+
+    @classmethod
+    def with_language(
+        cls, spec: ConfigSpec, language: str, order: list[str] | None = None
+    ) -> ConfigSpec:
+        """A copy of `spec` in another household language, its voices following it."""
+        new = spec.model_copy(deep=True)
+        new.languages.default = language
+        if order:
+            new.languages.order = list(order)
+        cls.drop_foreign_voices(new)
+        return new
 
     def save(self, spec: ConfigSpec) -> None:
         """Validate and persist with mode 0600."""
@@ -174,7 +222,7 @@ class ConfigSession:
         return bool(preset is not None and preset.capabilities.get(capability, False))
 
     @staticmethod
-    def default_spec(provider_id: str = "minimax", language: str = "yue") -> ConfigSpec:
+    def default_spec(provider_id: str = "minimax", language: str = "zh") -> ConfigSpec:
         """A spec binding every cloud slot to `provider_id` and the local slots to `local`."""
         preset = load_provider(provider_id)
         slots: dict[str, dict[str, ConfigSlot]] = {}
@@ -197,7 +245,7 @@ class ConfigSession:
 
     @classmethod
     def preset_spec(
-        cls, preset: str, provider_id: str = "minimax", language: str = "yue"
+        cls, preset: str, provider_id: str = "minimax", language: str = "zh"
     ) -> ConfigSpec:
         """A spec for a deployment profile (see PLAN.md block #22)."""
         spec = cls.default_spec(provider_id, language)

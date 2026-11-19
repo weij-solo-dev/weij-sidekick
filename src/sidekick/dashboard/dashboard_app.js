@@ -155,7 +155,7 @@
     "replay.recording": { fields: ["recording.enabled", "recording.root", "recording.chunk_minutes", "recording.retention_hours", "recording.min_free_gb", "recording.width", "recording.height", "recording.fps", "recording.bitrate_kbps", "recording.audio_codec", "recording.telemetry_hz"] },
     "system.dashboard": { fields: ["dashboard.host", "dashboard.port"] },
   };
-  const LANG_NAMES = { yue: "廣東話 Cantonese", zh: "普通話 Mandarin", en: "English" };
+  const LANG_NAMES = { zh: "普通话 Mandarin", en: "English", yue: "粤语 Cantonese" };
 
   function control(section, path, f, value, opts) {
     const ref = `${section}|${path}`;
@@ -231,7 +231,7 @@
     if (!p) return `<div class="card svc"><h3>${esc(slotKey)}</h3><p class="dim">no provider offers ${esc(kind)}</p></div>`;
     const models = p.models[kind] || { default: "", slots: {} };
     const modelDefault = (models.slots && models.slots[name]) || models.default || "";
-    const lang = (providers.languages && providers.languages.default) || "yue";
+    const lang = (providers.languages && providers.languages.default) || "zh";
     const voices = kind === "tts" ? (p.voices[lang] || []) : [];
     const sharedWith = (p.slots || []).filter((s) => s !== slotKey);
     const keyState = p.credentials.length ? (p.configured ? `<span class="ok">key set</span>` : `<span class="bad">key missing</span>`) : `<span class="dim">no key needed</span>`;
@@ -973,7 +973,7 @@
     document.querySelectorAll("[data-clear]").forEach((b) => b.addEventListener("click", async () => { await del(`/api/contacts/${encodeURIComponent(b.dataset.clear)}/embeddings/${b.dataset.kind}`); loadContacts(); }));
     document.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => { if (confirm(`delete ${b.dataset.del}?`)) { await del(`/api/contacts/${encodeURIComponent(b.dataset.del)}`); loadContacts(); } }));
   }
-  const LANG_OPTS = { "": "household default", yue: "廣東話 Cantonese", zh: "普通話 Mandarin", en: "English" };
+  const LANG_OPTS = { "": "household default", zh: "普通话 Mandarin", en: "English", yue: "粤语 Cantonese" };
   const PROMPTS = { yue: ["我係屋企人，Banana 你記住我把聲。", "今日天氣幾好，我哋出去行下啦。", "聽日朝早八點提我食藥，唔該。"], zh: ["我是家里人，Banana 请记住我的声音。", "今天天气不错，我们出去走走吧。", "明天早上八点提醒我吃药，谢谢。"], en: ["I'm part of the household, Banana, remember my voice.", "The weather is nice today, let's go for a walk.", "Remind me to take my pills at eight tomorrow morning."] };
   let enroll = { id: null, step: "details", takes: [], faces: null };
   function openEnroll(id, step) {
@@ -994,7 +994,7 @@
     if (enroll.step === "details") {
       body.innerHTML = `<div class="fields">
         <label class="f">name<input id="e-name" placeholder="e.g. 爸爸" value="${esc(c ? c.name : "")}"></label>
-        <label class="f">aliases (space separated)<input id="e-aliases" placeholder="daddy 老豆" value="${esc(c ? c.aliases.join(" ") : "")}"></label>
+        <label class="f">aliases (space separated)<input id="e-aliases" placeholder="daddy 老爸" value="${esc(c ? c.aliases.join(" ") : "")}"></label>
         <label class="f">language<select id="e-lang">${Object.entries(LANG_OPTS).map(([k, v]) => `<option value="${k}" ${c && (c.language || "") === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         <label class="f">owner<select id="e-owner"><option value="">no</option><option value="1" ${c && c.is_owner ? "selected" : ""}>yes — the household owner</option></select></label>
         <label class="f">telegram chat id (optional)<input id="e-tg" value="${esc(c ? c.remote_ids.telegram || "" : "")}"></label>
@@ -1013,8 +1013,8 @@
       });
       $("e-cancel").addEventListener("click", closeEnroll);
     } else if (enroll.step === "voice") {
-      const lang = (c && c.language) || "yue";
-      const prompts = PROMPTS[lang] || PROMPTS.yue;
+      const lang = (c && c.language) || (cfg && cfg.languages && cfg.languages.default) || "zh";
+      const prompts = PROMPTS[lang] || PROMPTS.zh;
       const n = enroll.takes.length;
       body.innerHTML = `<p class="dim" style="margin:0">Stand within two metres, speak at normal volume. Each take records 4 seconds straight from Banana's microphone; three takes make a good voice print.</p>
         <div class="prompt" id="e-prompt">${esc(prompts[Math.min(n, prompts.length - 1)])}</div>

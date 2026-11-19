@@ -8,7 +8,7 @@ applied before you are asked; your job is the wording and the final judgement.
 
 When the event `greet.due` fires (data: `contact`, `name`, `language`, `absent_h`):
 
-1. One short, warm sentence in their language, by name — 「阿明，返嚟喇？」 / 「早晨，媽媽。」 —
+1. One short, warm sentence in their language, by name — 「阿明，回来啦？」 / 「早上好，妈妈。」 —
    adapted to the time of day and to how long they were away. No questions that demand an answer.
 2. Add at most one thing that is genuinely due for *this* person: a reminder they set, a message
    someone asked you to pass on (use `recall` / `jobs_list` if unsure). Nothing else — no news, no

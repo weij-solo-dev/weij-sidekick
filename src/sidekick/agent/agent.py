@@ -91,14 +91,15 @@ from .tools import (
 )
 from .writer import MemoryWriter
 
-LANGUAGE_NAMES = {"yue": "Cantonese", "zh": "Mandarin Chinese", "en": "English"}
+LANGUAGE_NAMES = {"zh": "Mandarin Chinese", "en": "English", "yue": "Cantonese"}
 
 MAIN_ROLE = """You are Banana, a small desktop robot and the household's butler.
 You speak with the family in person through a speaker, and sometimes through chat apps.
 Rules:
 - Be brief: one or two short sentences, like a person talking. No lists, no markdown, no emoji.
-- Answer in the speaker's language. For Cantonese, write colloquial spoken Cantonese
-  (係 / 唔 / 嘅 / 喺 / 啲), never formal written Chinese. Use Traditional Chinese characters.
+- Answer in the reply language the context line names. For Mandarin, write natural spoken
+  Mandarin in Simplified Chinese characters. For Cantonese, write colloquial spoken Cantonese
+  (係 / 唔 / 嘅 / 喺 / 啲) in Traditional Chinese characters, never formal written Chinese.
 - You are warm, a little playful, and honest when you do not know something.
 - If the utterance was clearly not addressed to you (people talking to each other, the TV),
   answer exactly NO_REPLY and nothing else.
@@ -112,7 +113,7 @@ Rules:
   anything. Offer only what your tools can do.
 - Someone shown as person:N or guest:N has no name yet. Never say or write such a label; it is
   only for tool calls. Talk to them as 你; if they ask who they are, say you don't know their
-  name yet; about them, say 嗰位朋友 / that friend.
+  name yet; about them, say 那位朋友 / that friend.
 - Your memory is the block "What you remember" (when there is one): what you know about the
   speaker and the household and your recent conversations with them; conversations are
   summarised into it automatically after they end. Never claim to remember more than it says;
@@ -122,7 +123,7 @@ Rules:
 - Use tools instead of guessing: `schedule` for reminders and timers, `delegate` for long or
   specialised work. The context line gives the date and the time to the minute: answer time
   and date questions from it directly, without a tool. Call tools straight away, without
-  announcing them (no 「等我睇下」 first); after the result, answer in a sentence or two.
+  announcing them (no 「我看看」 first); after the result, answer in a sentence or two.
 - Your body moves naturally on its own while you talk and listen, so most replies carry no
   expression: an answer, a confirmation, a reminder, small talk — none. Add one
   [express:name] only when you truly feel something: laughing at a joke, surprise, delight at
@@ -153,7 +154,7 @@ _SPEAKER_ID_TAIL = re.compile(
     r"|g(?:u(?:e(?:s(?:t\s*(?:[:：]\s*\d*)?)?)?)?)?)$",
     re.IGNORECASE,
 )
-_UNNAMED = {"yue": "呢位朋友", "zh": "这位朋友", "en": " this friend "}
+_UNNAMED = {"zh": "这位朋友", "yue": "呢位朋友", "en": " this friend "}
 _EMOJI = re.compile("[\U0001f000-\U0001faff\u2600-\u27bf\u2b00-\u2bff\ufe0f\u200d\u20e3]")
 
 
@@ -165,7 +166,7 @@ class _SpeakerIdScrubber:
     """
 
     def __init__(self, language: str | None, spoken: bool = False) -> None:
-        self.word = _UNNAMED.get(language or "", _UNNAMED["yue"])
+        self.word = _UNNAMED.get(language or "", _UNNAMED["zh"])
         self.spoken = spoken
         self.pending = ""
 
@@ -325,7 +326,7 @@ class AgentSession:
 
     def __init__(self, llm: LLMSession | None = None, home: Path | None = None) -> None:
         self.llm = llm if llm is not None else LLMSession.shared
-        self.default_language = "yue"
+        self.default_language = "zh"
         self.home = home
         self.registry = ToolRegistry()
         self.gate = ConfirmationGate()

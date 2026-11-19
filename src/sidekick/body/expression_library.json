@@ -15,7 +15,7 @@
       "kind": "beat",
       "duration": 0.65,
       "description": "A clear single nod: yes, agreed, got it.",
-      "aliases": ["yes", "agree", "點頭", "係"],
+      "aliases": ["yes", "agree", "點頭", "係", "点头", "是", "对"],
       "keys": {
         "pitch": [[0, 0], [0.18, 8], [0.42, -1.5], [0.65, 0]]
       }
@@ -24,7 +24,7 @@
       "kind": "beat",
       "duration": 0.85,
       "description": "Two quick nods: yes yes, exactly.",
-      "aliases": ["exactly", "冇錯"],
+      "aliases": ["exactly", "冇錯", "没错"],
       "keys": {
         "pitch": [[0, 0], [0.15, 7], [0.32, 0], [0.47, 6], [0.66, -1], [0.85, 0]]
       }
@@ -60,7 +60,7 @@
       "kind": "beat",
       "duration": 1.0,
       "description": "Realisation: a quick lift with the antennas up — aha, now I get it.",
-      "aliases": ["realise", "realize", "原來"],
+      "aliases": ["realise", "realize", "原來", "原来"],
       "keys": {
         "pitch": [[0, 0], [0.15, -6], [0.55, -4], [1.0, 0]],
         "z": [[0, 0], [0.15, 4], [1.0, 0]],
@@ -102,7 +102,7 @@
       "kind": "beat",
       "duration": 0.95,
       "description": "A head shake: no, not that.",
-      "aliases": ["no", "唔係", "搖頭"],
+      "aliases": ["no", "唔係", "搖頭", "不是", "摇头"],
       "keys": {
         "yaw": [[0, 0], [0.15, 9], [0.35, -9], [0.55, 7], [0.75, -4], [0.95, 0]]
       }
@@ -111,7 +111,7 @@
       "kind": "beat",
       "duration": 1.1,
       "description": "A shrug: who knows, oh well.",
-      "aliases": ["dunno", "唔知"],
+      "aliases": ["dunno", "唔知", "不知道"],
       "keys": {
         "z": [[0, 0], [0.25, 7], [0.8, 7], [1.1, 0]],
         "roll": [[0, 0], [0.3, 5], [0.8, 5], [1.1, 0]],
@@ -144,7 +144,7 @@
       "kind": "beat",
       "duration": 1.3,
       "description": "An apology: a small bow with the antennas lowered.",
-      "aliases": ["apologise", "apologize", "對唔住", "唔好意思"],
+      "aliases": ["apologise", "apologize", "對唔住", "唔好意思", "对不起", "不好意思"],
       "keys": {
         "pitch": [[0, 0], [0.35, 10], [0.9, 10], [1.3, 0]],
         "z": [[0, 0], [0.35, -3], [1.3, 0]],
@@ -155,7 +155,7 @@
       "kind": "beat",
       "duration": 1.0,
       "description": "Thanks: a warm nod with the antennas up.",
-      "aliases": ["thank", "多謝", "唔該"],
+      "aliases": ["thank", "多謝", "唔該", "谢谢"],
       "keys": {
         "pitch": [[0, 0], [0.3, 8], [0.7, 8], [1.0, 0]],
         "ant": [[0, 0], [0.3, 15], [1.0, 0]]
@@ -240,7 +240,7 @@
       "kind": "emotion",
       "duration": 2.2,
       "description": "Happy and delighted: a bounce up, antennas high, a gentle happy sway.",
-      "aliases": ["happy", "cheerful", "glad", "joy", "開心", "高興"],
+      "aliases": ["happy", "cheerful", "glad", "joy", "開心", "高興", "开心", "高兴"],
       "keys": {
         "z": [[0, 0], [0.3, 6], [1.6, 5], [2.2, 0]],
         "pitch": [[0, 0], [0.3, -6], [1.6, -5], [2.2, 0]],
@@ -255,7 +255,7 @@
       "kind": "emotion",
       "duration": 2.0,
       "description": "Excited: bouncing with antennas wiggling — great news!",
-      "aliases": ["enthusiastic", "thrilled", "興奮"],
+      "aliases": ["enthusiastic", "thrilled", "興奮", "兴奋"],
       "keys": {
         "z": [[0, 0], [0.2, 7], [1.6, 6], [2.0, 0]],
         "pitch": [[0, 0], [0.2, -5], [2.0, 0]],
@@ -271,7 +271,7 @@
       "kind": "emotion",
       "duration": 1.6,
       "description": "Surprised: a quick start back and up, antennas shoot up.",
-      "aliases": ["surprise", "wow", "嘩", "驚訝"],
+      "aliases": ["surprise", "wow", "嘩", "驚訝", "哇", "惊讶"],
       "keys": {
         "pitch": [[0, 0], [0.12, -10], [0.9, -8], [1.6, 0]],
         "z": [[0, 0], [0.12, 7], [0.9, 6], [1.6, 0]],
@@ -283,7 +283,7 @@
       "kind": "emotion",
       "duration": 2.6,
       "description": "Amazed: rise, lean in and slowly marvel — that is extraordinary.",
-      "aliases": ["awe", "impressed", "勁"],
+      "aliases": ["awe", "impressed", "勁", "厉害"],
       "keys": {
         "pitch": [[0, 0], [0.5, -8], [2.0, -7], [2.6, 0]],
         "z": [[0, 0], [0.5, 6], [2.6, 0]],
@@ -298,7 +298,7 @@
       "kind": "emotion",
       "duration": 2.5,
       "description": "Touched and grateful: a slow soft bow with a tilt.",
-      "aliases": ["grateful", "moved", "感動"],
+      "aliases": ["grateful", "moved", "感動", "感动"],
       "keys": {
         "pitch": [[0, 0], [0.6, 8], [1.8, 7], [2.5, 0]],
         "roll": [[0, 0], [0.6, 6], [1.8, 6], [2.5, 0]],
@@ -310,7 +310,7 @@
       "kind": "emotion",
       "duration": 3.0,
       "description": "Sad: the head and antennas droop and turn a little away.",
-      "aliases": ["unhappy", "sorrow", "唔開心", "傷心"],
+      "aliases": ["unhappy", "sorrow", "唔開心", "傷心", "不开心", "伤心", "难过"],
       "keys": {
         "pitch": [[0, 0], [0.8, 14], [2.4, 13], [3.0, 0]],
         "z": [[0, 0], [0.8, -6], [2.4, -6], [3.0, 0]],
@@ -336,7 +336,7 @@
       "kind": "emotion",
       "duration": 2.3,
       "description": "Embarrassed or shy: look down and aside, antennas folded, a little squirm.",
-      "aliases": ["shy", "blush", "害羞", "尷尬"],
+      "aliases": ["shy", "blush", "害羞", "尷尬", "尴尬"],
       "keys": {
         "yaw": [[0, 0], [0.4, 14], [1.7, 12], [2.3, 0]],
         "pitch": [[0, 0], [0.4, 10], [1.7, 9], [2.3, 0]],
@@ -351,7 +351,7 @@
       "kind": "emotion",
       "duration": 2.3,
       "description": "Proud: chin up, antennas high, a slow satisfied look around.",
-      "aliases": ["satisfied", "驕傲", "叻"],
+      "aliases": ["satisfied", "驕傲", "叻", "骄傲"],
       "keys": {
         "pitch": [[0, 0], [0.4, -9], [1.8, -8], [2.3, 0]],
         "z": [[0, 0], [0.4, 6], [1.8, 5], [2.3, 0]],
@@ -365,7 +365,7 @@
       "kind": "emotion",
       "duration": 2.4,
       "description": "Relieved: phew — lift, then let everything settle.",
-      "aliases": ["relief", "phew", "鬆一口氣"],
+      "aliases": ["relief", "phew", "鬆一口氣", "松一口气"],
       "keys": {
         "z": [[0, 0], [0.3, 4], [1.0, -5], [1.8, -4], [2.4, 0]],
         "pitch": [[0, 0], [0.3, -4], [1.0, 5], [1.8, 4], [2.4, 0]],
@@ -376,7 +376,7 @@
       "kind": "emotion",
       "duration": 2.6,
       "description": "Confused: the head tilts one way then the other, antennas disagree.",
-      "aliases": ["puzzled", "huh", "疑惑", "唔明"],
+      "aliases": ["puzzled", "huh", "疑惑", "唔明", "不明白"],
       "keys": {
         "roll": [[0, 0], [0.4, 12], [1.1, 12], [1.5, -9], [2.1, -9], [2.6, 0]],
         "yaw": [[0, 0], [0.4, 4], [1.1, 4], [1.5, -4], [2.1, -4], [2.6, 0]],
@@ -388,7 +388,7 @@
       "kind": "emotion",
       "duration": 2.6,
       "description": "Worried: head low, antennas back and a slight nervous tremble.",
-      "aliases": ["anxious", "nervous", "concerned", "擔心"],
+      "aliases": ["anxious", "nervous", "concerned", "擔心", "担心"],
       "keys": {
         "pitch": [[0, 0], [0.5, 6], [2.0, 6], [2.6, 0]],
         "z": [[0, 0], [0.5, -3], [2.0, -3], [2.6, 0]],
@@ -403,7 +403,7 @@
       "kind": "emotion",
       "duration": 1.7,
       "description": "Mildly annoyed: a huff and a turn away, antennas flat.",
-      "aliases": ["grumpy", "irritated", "hmph", "嬲", "哼"],
+      "aliases": ["grumpy", "irritated", "hmph", "嬲", "哼", "生气"],
       "keys": {
         "yaw": [[0, 0], [0.25, -10], [1.2, -9], [1.7, 0]],
         "pitch": [[0, 0], [0.25, 5], [1.2, 4], [1.7, 0]],
@@ -441,7 +441,7 @@
       "kind": "emotion",
       "duration": 2.2,
       "description": "Scared: start back and tremble, antennas pinned back.",
-      "aliases": ["afraid", "fear", "驚", "怕"],
+      "aliases": ["afraid", "fear", "驚", "怕", "害怕"],
       "keys": {
         "x": [[0, 0], [0.15, -7], [1.6, -6], [2.2, 0]],
         "z": [[0, 0], [0.15, -4], [1.6, -4], [2.2, 0]],
@@ -457,7 +457,7 @@
       "kind": "emotion",
       "duration": 2.6,
       "description": "Warm affection: a soft sway with the antennas swinging.",
-      "aliases": ["loving", "affection", "aww_cute", "鍾意", "愛"],
+      "aliases": ["loving", "affection", "aww_cute", "鍾意", "愛", "喜欢", "爱"],
       "keys": {
         "z": [[0, 0], [0.4, 3], [2.2, 3], [2.6, 0]],
         "pitch": [[0, 0], [0.4, -3], [2.6, 0]],
@@ -472,7 +472,7 @@
       "kind": "emotion",
       "duration": 1.6,
       "description": "Yuck: recoil and turn away (stories, games).",
-      "aliases": ["disgusted", "eww", "核突"],
+      "aliases": ["disgusted", "eww", "核突", "恶心"],
       "keys": {
         "yaw": [[0, 0], [0.25, -12], [1.2, -10], [1.6, 0]],
         "pitch": [[0, 0], [0.25, -4], [1.6, 0]],
@@ -503,7 +503,7 @@
       "kind": "performance",
       "duration": 8.0,
       "description": "Bobbing along to music.",
-      "aliases": ["music", "跟住音樂"],
+      "aliases": ["music", "跟住音樂", "跟着音乐"],
       "keys": {
         "ant": [[0, 0], [0.5, 15], [7.5, 15], [8.0, 0]]
       },
@@ -516,7 +516,7 @@
       "kind": "performance",
       "duration": 4.2,
       "description": "A sleepy yawn and a shake to wake up.",
-      "aliases": ["sleepy", "tired", "眼瞓", "攰"],
+      "aliases": ["sleepy", "tired", "眼瞓", "攰", "困", "打哈欠"],
       "keys": {
         "pitch": [[0, 0], [0.8, -14], [2.0, -16], [2.8, 4], [3.6, 6], [4.2, 0]],
         "z": [[0, 0], [0.8, 6], [2.0, 7], [2.8, -4], [4.2, 0]],
@@ -530,7 +530,7 @@
       "kind": "performance",
       "duration": 3.0,
       "description": "A wake-up stretch.",
-      "aliases": ["wake_up", "伸懶腰"],
+      "aliases": ["wake_up", "伸懶腰", "伸懒腰"],
       "keys": {
         "z": [[0, 0], [1.0, 10], [2.2, 10], [3.0, 0]],
         "pitch": [[0, 0], [1.0, -12], [2.2, -12], [3.0, 0]],
@@ -542,7 +542,7 @@
       "kind": "performance",
       "duration": 3.2,
       "description": "Celebration: hooray!",
-      "aliases": ["hooray", "yay", "victory", "好嘢"],
+      "aliases": ["hooray", "yay", "victory", "好嘢", "太好了"],
       "keys": {
         "pitch": [[0, 0], [0.3, -8], [2.8, -6], [3.2, 0]],
         "ant": [[0, 0], [0.3, 35], [2.8, 35], [3.2, 0]]
@@ -557,7 +557,7 @@
       "kind": "performance",
       "duration": 3.2,
       "description": "Peekaboo for children: hide low, then pop up.",
-      "aliases": ["peek_a_boo", "躲貓貓"],
+      "aliases": ["peek_a_boo", "躲貓貓", "躲猫猫"],
       "keys": {
         "pitch": [[0, 0], [0.6, 20], [1.8, 20], [2.0, -10], [2.6, -8], [3.2, 0]],
         "z": [[0, 0], [0.6, -10], [1.8, -10], [2.0, 8], [2.6, 6], [3.2, 0]],
@@ -568,7 +568,7 @@
       "kind": "performance",
       "duration": 5.0,
       "description": "A curious look around the room.",
-      "aliases": ["explore", "四圍睇"],
+      "aliases": ["explore", "四圍睇", "四处看"],
       "keys": {
         "yaw": [[0, 0], [1.0, 25], [2.0, 25], [3.2, -25], [4.2, -25], [5.0, 0]],
         "pitch": [[0, 0], [1.0, -4], [2.0, -4], [3.2, -2], [4.2, -2], [5.0, 0]],
@@ -580,7 +580,7 @@
       "kind": "performance",
       "duration": 2.2,
       "description": "Ah… ah… choo! (a joke for children).",
-      "aliases": ["achoo", "乞嚏"],
+      "aliases": ["achoo", "乞嚏", "打喷嚏"],
       "keys": {
         "pitch": [[0, 0], [0.5, -6], [0.9, -10], [1.2, -13], [1.35, 14], [1.7, 8], [2.2, 0]],
         "z": [[0, 0], [0.9, 4], [1.2, 6], [1.35, -6], [2.2, 0]],

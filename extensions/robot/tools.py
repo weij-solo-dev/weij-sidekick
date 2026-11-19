@@ -354,7 +354,7 @@ def TOOLS(ctx: ExtensionContext) -> list[Tool]:
             _schema(
                 {
                     "name": {"type": "string"},
-                    "language": {"type": "string", "description": "yue, zh or en"},
+                    "language": {"type": "string", "description": "zh, en or yue"},
                 },
                 ["name"],
             ),
@@ -379,7 +379,7 @@ def TOOLS(ctx: ExtensionContext) -> list[Tool]:
                 {
                     "person_id": {"type": "string"},
                     "name": {"type": "string"},
-                    "language": {"type": "string", "description": "yue, zh or en"},
+                    "language": {"type": "string", "description": "zh, en or yue"},
                 },
                 ["person_id", "name"],
             ),

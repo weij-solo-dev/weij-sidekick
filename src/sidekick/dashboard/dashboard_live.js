@@ -39,7 +39,7 @@
 
   // ---------------------------------------------------------------- camera overlay (faces)
   const facesEl = $("cam-faces");
-  const guestName = (id) => (typeof id !== "string" ? id : id.startsWith("guest:") ? `訪客 ${id.slice(6)}` : id.startsWith("person:") ? `訪客 ${id.slice(7)}` : id);
+  const guestName = (id) => (typeof id !== "string" ? id : id.startsWith("guest:") ? `访客 ${id.slice(6)}` : id.startsWith("person:") ? `访客 ${id.slice(7)}` : id);
   function faces(list) {
     if (!facesEl) return;
     facesEl.innerHTML = (list || []).map((f) => `<div class="face${f.contact ? "" : " unknown"}" style="left:${(f.x * 100).toFixed(1)}%;top:${(f.y * 100).toFixed(1)}%;width:${(f.w * 100).toFixed(1)}%;height:${(f.h * 100).toFixed(1)}%"><span>${esc(f.name || "?")}${f.id_score != null ? ` ${f.id_score}` : ""}</span></div>`).join("");
@@ -52,7 +52,7 @@
   const scroller = $("chat-scroll");
   const rowsEl = $("tl-rows"), liveEl = $("tl-live"), latest = $("chat-latest");
   const PAGE = 60;
-  const CHANNEL = { voice: "語音", telegram: "Telegram", wechat: "微信", dashboard: "控制台" };
+  const CHANNEL = { voice: "语音", telegram: "Telegram", wechat: "微信", dashboard: "控制台" };
   const CUE = /\[\s*(express|style)\s*:\s*([^\]]*)\]\s*/gi;  // performance cues stay on the timeline; shown as notes here
   const rows = new Map();  // timeline id → row
   const notes = [];  // the agent's errors, in time order with the rows
@@ -68,25 +68,25 @@
     if (r.note) return `<div class="msg note"><div class="body"><div class="bubble ${r.cls || ""}">${esc(r.text)}</div><div class="meta">agent · ${esc(stamp(r.ts))}</div></div></div>`;
     if (r.role === "user") { const name = nameOf(r.speaker); return msg("user", String(name).slice(0, 1).toUpperCase(), r.content, [name, channel, stamp(r.ts), r.visibility === "private" ? "private" : ""]); }
     const cues = [...r.content.matchAll(CUE)].map((m) => `${m[1]}: ${m[2].trim()}`);
-    const own = r.meta && r.meta.delivery ? `主動${r.delivered_to ? " → " + (CHANNEL[r.delivered_to] || r.delivered_to) : ""}` : "";
+    const own = r.meta && r.meta.delivery ? `主动${r.delivered_to ? " → " + (CHANNEL[r.delivered_to] || r.delivered_to) : ""}` : "";
     return msg("bot", "B", r.content.replace(CUE, "").trim() || r.content, ["Banana", channel, own, stamp(r.ts), cues.join(", ")]);
   }
   const liveMessage = (l) => (l.who === "hearing"
-    ? msg("user live", "…", l.text, ["聽緊講"], " pulse")
-    : msg("bot live", "B", l.text, ["Banana", l.pulse ? "" : "講緊"], l.pulse ? " pulse" : ""));
+    ? msg("user live", "…", l.text, ["正在听"], " pulse")
+    : msg("bot live", "B", l.text, ["Banana", l.pulse ? "" : "正在说"], l.pulse ? " pulse" : ""));
   // the empty state: an invitation when Banana is ready, the readiness verdict when it is not
   function emptyState() {
     const r = window.SidekickApp && window.SidekickApp.readiness ? window.SidekickApp.readiness() : null;
     if (r && r.ready === false) {
       const blocking = (r.items || []).filter((i) => i.level === "bad").map((i) => esc(i.title));
-      return `<div class="empty"><h1>Banana 未準備好</h1><p>${esc(r.summary)}${blocking.length ? "：" + blocking.join("、") : ""}。System 頁列出差咩、去邊度補。</p><div class="ready-call"><button class="primary" data-readiness-run>檢查就緒</button> <button data-go="system">睇 System</button></div></div>`;
+      return `<div class="empty"><h1>Banana 还没准备好</h1><p>${esc(r.summary)}${blocking.length ? "：" + blocking.join("、") : ""}。System 页列出缺什么、去哪里补。</p><div class="ready-call"><button class="primary" data-readiness-run>检查就绪</button> <button data-go="system">看 System</button></div></div>`;
     }
-    return '<div class="empty"><h1>Banana 在聽</h1><p>講一聲「Banana」開始對話。聽到同講出嘅嘢、Telegram 同微信嘅訊息都會顯示喺呢度。</p></div>';
+    return '<div class="empty"><h1>Banana 在听</h1><p>说一声「Banana」开始对话。听到的和说出的话、Telegram 和微信的消息都会显示在这里。</p></div>';
   }
   function renderRows(keepTop) {
     const before = { height: scroller.scrollHeight, top: scroller.scrollTop, bottom: nearBottom() };
     const items = [...rows.values(), ...notes].sort((x, y) => x.ts - y.ts);
-    const out = items.length ? [`<div class="day dim">${exhausted ? "對話由呢度開始" : loading ? "載入緊更早嘅對話…" : "向上捲睇更早嘅對話"}</div>`] : [];
+    const out = items.length ? [`<div class="day dim">${exhausted ? "对话从这里开始" : loading ? "正在加载更早的对话…" : "向上滚动看更早的对话"}</div>`] : [];
     let day = "";
     for (const it of items) {
       const d = dayOf(it.ts);
@@ -149,7 +149,7 @@
     if (!c) return;
     const running = !!c.turn_running || !!(inter && inter.speaking);
     if (c.said && running) liveLine = { who: "robot", text: c.said };
-    else if (c.listening) liveLine = { who: "hearing", text: "聆聽中…" };
+    else if (c.listening) liveLine = { who: "hearing", text: "聆听中…" };
     else if (running) liveLine = { who: "robot", text: "思考中…", pulse: true };
     else liveLine = null;
     const heard = !!c.heard_at && c.heard_at !== lastHeardAt;

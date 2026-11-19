@@ -384,7 +384,7 @@ class WeChatAdapter:
                 Log.info(f"wechat: message from unlisted user {mask_secret(user_id)}")
                 await self.send(
                     ChannelReply(
-                        "這個微信未同 Banana 配對。請聯絡喺 dashboard 掃碼登入嘅佈置者。",
+                        "这个微信还没有和 Banana 配对，请联系在 dashboard 扫码登录的管理者。",
                         to=user_id,
                     )
                 )

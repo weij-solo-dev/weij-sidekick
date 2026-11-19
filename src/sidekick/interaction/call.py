@@ -3,7 +3,7 @@
 Overview
     The name with nothing after it used to get a nod and a flick of the antennas. People meeting
     Banana for the first time took the silence for a broken robot (owner, 2026-11-01, block #92).
-    A short spoken answer — 「喺度！咩事呀？」 — now plays at once. Its clips are synthesized
+    A short spoken answer — 「我在！什么事？」 — now plays at once. Its clips are synthesized
     when the voice front end starts, so the answer comes as fast as a person's: no model call
     and no TTS round trip on the call itself.
 Design
@@ -32,8 +32,8 @@ from sidekick.audio import AudioClip
 from sidekick.log import Log
 
 CALL_ANSWERS: dict[str, tuple[str, ...]] = {
+    "zh": ("我在！什么事？", "嗯？我在。", "在呢，你说。", "诶，怎么啦？"),
     "yue": ("喺度！咩事呀？", "係？我喺度。", "我喺度，你講啦。", "嗯？咩事呀？"),
-    "zh": ("我在！什么事？", "嗯？我在。", "在呢，你说。"),
     "en": ("Yes? I'm here.", "Hi! What's up?", "I'm listening."),
 }
 
@@ -49,8 +49,8 @@ class CallAnswers:
         self._last: str | None = None
 
     def phrases(self, language: str | None) -> tuple[str, ...]:
-        """The answers in a language (Cantonese when it has none)."""
-        return CALL_ANSWERS.get(language or "", CALL_ANSWERS["yue"])
+        """The answers in a language (Mandarin when it has none)."""
+        return CALL_ANSWERS.get(language or "", CALL_ANSWERS["zh"])
 
     async def prepare(self, synthesize: Synthesize, languages: Iterable[str | None]) -> int:
         """Synthesize every phrase not yet held, in the order of `languages`; how many are ready."""

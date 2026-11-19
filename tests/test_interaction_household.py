@@ -84,7 +84,7 @@ def test_call_answers_vary_and_wait_for_their_clips():
     assert text in CALL_ANSWERS["yue"] and clip is None  # not synthesized: said via the stream
     picks = [calls.pick("yue")[0] for _ in range(20)]
     assert all(a != b for a, b in itertools.pairwise(picks))  # never twice in a row
-    assert calls.pick("fr")[0] in CALL_ANSWERS["yue"]  # no phrases: the household's
+    assert calls.pick("fr")[0] in CALL_ANSWERS["zh"]  # no phrases in French: Mandarin's
 
     async def synthesize(text: str) -> AudioClip | None:
         if text.startswith("I"):

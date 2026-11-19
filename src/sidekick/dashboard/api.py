@@ -1614,15 +1614,8 @@ def build_router(ctx: DashboardContext) -> APIRouter:
     def set_languages(update: LanguagesUpdate) -> dict[str, Any]:
         if update.default not in LANGUAGES or any(x not in LANGUAGES for x in update.order or []):
             raise HTTPException(status_code=422, detail=f"language must be one of {LANGUAGES}")
-        data = ctx.spec.model_dump(mode="json")
-        data["languages"]["default"] = update.default
-        if update.order:
-            data["languages"]["order"] = update.order
-        try:
-            new_spec = ConfigSpec.model_validate(data)
-        except Exception as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
-        _save_spec(new_spec, reapply=True)
+        # the voices follow the language: one pinned for another language is dropped (#94)
+        _save_spec(ctx.config.with_language(ctx.spec, update.default, update.order), reapply=True)
         return {"ok": True}
 
     @router.post("/config/probe")

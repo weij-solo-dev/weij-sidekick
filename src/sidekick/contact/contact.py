@@ -15,9 +15,11 @@ Design
     contact, so a stranger befriended under a household member's name stays someone else;
     `update` is the only way to change a profile. `start()`
     enrolls the robot's own voice from three clips of the `synthesize` function `setup` was
-    given (when `contacts.enroll_self` is on and it is not enrolled yet), merges unnamed people
-    who are a contact's voice and forgets unnamed people unseen for `PEOPLE_RETENTION_DAYS`,
-    then once a day; `stop()` ends that loop.
+    given (when `contacts.enroll_self` is on and it is not enrolled yet — or was enrolled from
+    another voice: the print belongs to the TTS voice it was made from, which `setup`'s `voice`
+    names, and a change of the household language changes that voice, block #94), in the
+    household's language, merges unnamed people who are a contact's voice and forgets unnamed
+    people unseen for `PEOPLE_RETENTION_DAYS`, then once a day; `stop()` ends that loop.
     **Voices keep learning (block #80).** One night's three utterances do not cover the next
     morning (the owner scored 0.41–0.54 against them): `learn_voice` folds an utterance
     identified as a contact into the contact's centroid with its weight capped at
@@ -76,6 +78,7 @@ from .voice import MODEL_NAME as VOICE_MODEL_NAME
 from .voice import VoiceConfiguration, VoiceIdentifier
 
 Synthesize = Callable[[str], Awaitable[AudioClip | None]]
+VoiceName = Callable[[], str | None]  # which TTS voice `synthesize` speaks with now
 
 PEOPLE_RETENTION_DAYS = 7.0  # unnamed people (block #35)
 VOICE_LEARN_WEIGHT = 50  # a contact's centroid against each newly learned utterance (block #80)
@@ -84,11 +87,25 @@ MERGE_SCORE = 0.55  # person centroid vs contact centroid
 MERGE_MARGIN = 0.1  # ...and this much closer to it than to the next contact
 NAME_TTL_S = 30.0  # display names are cached this long (dropped on any contact change)
 COUNTS_TTL_S = 30.0  # `live()` counts members and people seen at most this often
-SELF_ENROLL_TEXTS = (
-    "你好，我係 Banana，係屋企嘅小管家。",
-    "今日天氣好好，記得帶遮出門呀。",
-    "我聽到你講嘢啦，有咩可以幫到你？",
-)
+# What the robot says to enroll its own voice, in the household's language.
+SELF_ENROLL_TEXTS: dict[str, tuple[str, ...]] = {
+    "zh": (
+        "你好，我是 Banana，是家里的小管家。",
+        "今天天气很好，出门记得带伞哦。",
+        "我听到你说话啦，有什么可以帮你？",
+    ),
+    "yue": (
+        "你好，我係 Banana，係屋企嘅小管家。",
+        "今日天氣好好，記得帶遮出門呀。",
+        "我聽到你講嘢啦，有咩可以幫到你？",
+    ),
+    "en": (
+        "Hello, I am Banana, the little butler of this home.",
+        "The weather is lovely today, remember your umbrella anyway.",
+        "I heard you. What can I do for you?",
+    ),
+}
+SELF_NOTE = "the robot's own TTS voice"  # the `self` contact's notes, then " · <voice>"
 
 
 class ContactSession:
@@ -110,6 +127,8 @@ class ContactSession:
         self._names: dict[str, tuple[float, str]] = {}  # display names, kept NAME_TTL_S
         self._counts: tuple[float, dict[str, Any]] | None = None  # for `live()`, COUNTS_TTL_S
         self.synthesize: Synthesize | None = None
+        self.voice_name: VoiceName | None = None
+        self.language = "zh"
         self.enroll_self_on_start = False
         self._prune_task: asyncio.Task[None] | None = None
 
@@ -119,10 +138,18 @@ class ContactSession:
         models_dir: Path,
         config: Any = None,
         synthesize: Synthesize | None = None,
+        voice: VoiceName | None = None,
+        language: str | None = None,
     ) -> None:
-        """Open the store and prepare the identifiers (models load lazily)."""
+        """Open the store and prepare the identifiers (models load lazily).
+
+        `synthesize` speaks a text in the robot's voice, `voice` names that voice and
+        `language` is the household's: together they keep the robot's own voice print current.
+        """
         self.store = ContactStore(db_path)
         self.synthesize = synthesize
+        self.voice_name = voice
+        self.language = language or self.language
         self.enroll_self_on_start = bool(getattr(config, "enroll_self", False))
         voice_threshold = (
             float(getattr(config, "voice_threshold", 0.5)) if config is not None else 0.5
@@ -147,7 +174,7 @@ class ContactSession:
 
     async def start(self) -> None:
         """Enroll the robot's own voice when needed, merge split voices, prune people daily."""
-        if self.enroll_self_on_start and not self.self_enrolled():
+        if self.enroll_self_on_start and (not self.self_enrolled() or self.self_voice_changed()):
             await self._enroll_self()
         if self.ready:
             try:
@@ -197,14 +224,15 @@ class ContactSession:
         """The robot's own TTS voice, so echo residuals are recognised as `self`."""
         if self.synthesize is None:
             return
+        voice = self._current_voice()
         clips = []
-        for text in SELF_ENROLL_TEXTS:
+        for text in SELF_ENROLL_TEXTS.get(self.language, SELF_ENROLL_TEXTS["zh"]):
             clip = await self.synthesize(text)
             if clip is not None:
                 clips.append(clip)
         if clips:
-            used = await asyncio.to_thread(self.enroll_self, clips)
-            Log.info(f"self voice enrolled from {used} TTS clip(s)")
+            used = await asyncio.to_thread(self.enroll_self, clips, voice)
+            Log.info(f"self voice enrolled from {used} TTS clip(s) of {voice or 'the TTS voice'}")
         else:
             Log.warning("self voice not enrolled: TTS unavailable")
 
@@ -597,22 +625,41 @@ class ContactSession:
         Log.info(f"voice enrollment for {contact_id}: {used} clip(s)")
         return used
 
-    def enroll_self(self, clips: Iterable[AudioClip]) -> int:
-        """The robot's own TTS voice."""
+    def enroll_self(self, clips: Iterable[AudioClip], voice: str | None = None) -> int:
+        """The robot's own TTS voice (`voice` names it, so a later change is noticed)."""
         assert self.store is not None
-        if self.store.get(SELF_ID) is None:
-            self.store.upsert(
-                Contact(
-                    SELF_ID,
-                    "Banana (self)",
-                    ("robot", "banana"),
-                    "the robot's own TTS voice",
-                    None,
-                    False,
-                )
+        self.store.upsert(
+            Contact(
+                SELF_ID,
+                "Banana (self)",
+                ("robot", "banana"),
+                f"{SELF_NOTE} · {voice}" if voice else SELF_NOTE,
+                None,
+                False,
             )
+        )
+        self._changed()
         self.store.clear_embeddings(SELF_ID, "voice")
         return self.enroll_voice(SELF_ID, clips)
+
+    def _current_voice(self) -> str | None:
+        try:
+            return self.voice_name() if self.voice_name is not None else None
+        except Exception as exc:  # the TTS session is a peer: never in the way of a start
+            Log.debug(f"tts voice name: {exc!r}")
+            return None
+
+    def self_voice_changed(self) -> bool:
+        """Whether the robot's voice print was made from another voice than the TTS speaks now.
+
+        False when the current voice is unknown (no TTS bound); a print made before voices
+        were recorded counts as changed once, and is made again.
+        """
+        current = self._current_voice()
+        contact = self.store.get(SELF_ID) if self.store is not None else None
+        if current is None or contact is None:
+            return False
+        return (contact.notes or "").partition(" · ")[2] != current
 
     def self_enrolled(self) -> bool:
         """Whether the robot's voice is known."""

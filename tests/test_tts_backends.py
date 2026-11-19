@@ -241,6 +241,8 @@ async def test_session_slots_trace_and_streaming_flag(tmp_path):
         ),
     )
     assert not session.supports_streaming("fallback") and not session.is_ready("primary")
+    assert TTSSession().voice() is None  # nothing bound: no voice to name
+    assert session.voice() == f"minimax/{session.backend('fallback').configuration.voice_id}"
     result = await session.infer("fallback", "你好", task="probe")
     assert result.success
     row = session._trace.recent()[0]

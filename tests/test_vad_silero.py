@@ -39,7 +39,7 @@ def test_white_noise_is_not_speech():
 
 @pytest.mark.slow
 def test_real_speech_yields_one_segment_when_sample_exists():
-    sample = StorageSession().layout.cache_dir / "test_speech_yue.wav"
+    sample = StorageSession().layout.cache_dir / "test_speech_zh.wav"
     if not sample.exists():
         pytest.skip("no cached speech sample; produced by the live self-test")
     clip = decode_wav(sample.read_bytes())
